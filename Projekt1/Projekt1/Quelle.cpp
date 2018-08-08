@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 
 	int MPI_Init(int * argc, char *** argv);
 
-
+	int MPI_Finalize(void);
 
 	FILE *fp;
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 	}
 	else {
 
-		//TODO aosiasdfasdnfeoisnf
+		//TODO
 		
 
 		fclose(fp);
