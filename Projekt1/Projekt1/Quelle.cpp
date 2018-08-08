@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
 	int MPI_Init(int *argc, char ***argv);
 
-	//hier kommt noch Code hin
+	//hier kommt noch Code hin, der bestimmt ganz Toll sein wird
 
 	int MPI_Finalize(void);
 
