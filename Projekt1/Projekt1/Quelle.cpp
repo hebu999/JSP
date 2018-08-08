@@ -19,6 +19,8 @@ int main(int argc, char **argv) {
 
 	int MPI_Init(int *argc, char ***argv);
 
+	//hier kommt noch Code hin
+
 	int MPI_Finalize(void);
 
 	FILE *fp;
