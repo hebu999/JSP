@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
 
 
-	int MPI_Init(int * argc, char *** argv);
+	int MPI_Init(int *argc, char ***argv);
 
 
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 	}
 	else {
 
-		//TODO aosiasdfasdnfeoiasdfassnf
+		//TODO
 		
 
 		fclose(fp);
