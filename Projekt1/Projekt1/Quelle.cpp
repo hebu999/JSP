@@ -30,11 +30,12 @@ int main(int argc, char **argv) {
 
 	if (fp == NULL) {
 
-		printf("Datei konnte nicht geoeffnet werden!\n");
+		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
 	else {
 
-		//TODO
+		//TODO aosinfeoisnf
+		
 
 		fclose(fp);
 	}
