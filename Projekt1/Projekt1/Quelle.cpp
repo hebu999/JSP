@@ -6,22 +6,33 @@
 *
 */
 
+#include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <mpi.h>
 
+int main(int argc, char** argv) {
 
-int main(int argc, char **argv) {
+	int facilities_count;
+	int jobs_count;
 
-	int facilities;
-	int operations;
+	const int facilities[] = {1};
 
-	int MPI_Init(int *argc, char ***argv);
+	const int jobs[] = { 1 };
+
+	MPI_Init(&argc, &argv);
+
+	int MPI_Send(void *buf, int count,
+		MPI_Datatype datatype, int dest, int
+		tag, MPI_Comm comm);
+
+	int MPI_Recv(void *buf, int count,
+		MPI_Datatype datatype, int source, int
+		tag, MPI_Comm comm, MPI_Status *status);
 
 	//hier kommt noch Code hin, der bestimmt ganz Toll sein wird
 
-	int MPI_Finalize(void);
+	MPI_Finalize();
 
 	FILE *fp;
 
@@ -39,6 +50,6 @@ int main(int argc, char **argv) {
 		fclose(fp);
 	}
 
-
+	return 0;
 
 }
