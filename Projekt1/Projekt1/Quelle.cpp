@@ -14,34 +14,6 @@
 #include <string.h>
 
 
-/*void calcDimensions(FILE* fp, int& row, int& maxcolumns, int& maxDigits) {
-	int ch = 0;
-	int digits = 0;
-	int columns = 1;
-
-	while ((ch = fgetc(fp)) != EOF)
-	{
-		if (ch == '\n')
-		{
-			row++;
-			if (columns > maxcolumns) maxcolumns = columns;
-			columns = 1;
-			if (digits > maxDigits) maxDigits = digits;
-			digits = 0;
-		}
-		else if (ch == ' ')
-		{
-			columns++;
-			if (digits > maxDigits) maxDigits = digits;
-			digits = 0;
-		}
-		else
-		{
-			digits++;
-		}
-	}
-}*/
-
 void readjobs(FILE* fp, int** array,int linesToRead, int facilityCount) {
 	int ch = 0;
 	int rows = 0;
