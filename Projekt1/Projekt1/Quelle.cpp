@@ -13,7 +13,7 @@
 #include <vector>
 #include <string.h>
 
-
+//Funktion zum einlesen der Job Textdatei
 void readjobs(FILE* fp, int** array,int linesToRead, int facilityCount) {
 	int ch = 0;
 	int rows = 0;
