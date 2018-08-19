@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <vector>
 #include <string.h>
 
 //Funktion zum einlesen der Job Textdatei
