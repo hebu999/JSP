@@ -76,14 +76,14 @@ int main(int argc, char** argv) {
 
 
 	int** jobs = NULL;
-	FILE *fp;
-	fp = fopen("jobs.txt", "r");
+	FILE *fp;	//Zeiger für Datei
+	fp = fopen("jobs.txt", "r");	//Dateizugriff, Datei als read 
 
 	
-	if (fp == NULL) {
+	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
-	else {
+	else {	//Datei konnte geoeffnet werden
 		printf("Datei ist lesbar\n");
 		readjobs(fp, jobs, 6, 6);
 		printf("\n\n%i", jobs[5][5]);
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
 				printf("%d ", jobs[i][j]);
 			}
 		}*/
-		fclose(fp);
+		fclose(fp);	//Dateizugriff wieder freigeben
 	}
 
 
