@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Quelle.cpp" />
+    <ClCompile Include="Quelle.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F93BEFC3-AE73-479E-AE70-CBBD8FF5CE22}</ProjectGuid>
