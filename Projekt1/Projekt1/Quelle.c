@@ -13,9 +13,10 @@
 #include <string.h>
 
 //Funktion zum einlesen der Job Textdatei
-void readjobs(FILE* fp, int** array,int linesToRead, int facilityCount) {
+int** readjobs(FILE* fp, int linesToRead, int facilityCount) {
 	int ch = 0;
 	int rows = 0;
+
 	while ((ch = fgetc(fp)) != '\n')
 	{
 		rows = ch - 48;
@@ -24,7 +25,7 @@ void readjobs(FILE* fp, int** array,int linesToRead, int facilityCount) {
 
 	if (rows > linesToRead) rows = linesToRead;
 
-	array = (int**)malloc(rows * sizeof(int*));
+	int** array = (int**)malloc(rows * sizeof(int*));
 
 	for (int i = 0; i < rows; i++) {
 		/* size_y is the height */
@@ -50,12 +51,14 @@ void readjobs(FILE* fp, int** array,int linesToRead, int facilityCount) {
 			//array[i][j] = array[i][j] * 10 + (ch - 48);
 		}
 	}
+
+	return array;
 }
 
 int main(int argc, char** argv) {
 
-	int facilities_count=-1;
-	int jobs_count=-1;
+	int facilities_count=0;
+	int jobs_count=0;
 
 	const int facilities[] = {1};
 
@@ -73,28 +76,34 @@ int main(int argc, char** argv) {
 
 	//hier kommt noch Code hin, der bestimmt ganz Toll sein wird
 
-
-	int** jobs = NULL;
-	FILE *fp;	//Zeiger für Datei
-	fp = fopen("jobs.txt", "r");	//Dateizugriff, Datei als read 
-
 	
+	FILE *fp; //Zeiger für Datei
+	fp = fopen("jobs.txt", "r");  //Dateizugriff, Datei als read 
+
+	int** jobs = readjobs(fp, 6, 6);
+
 	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
 	else {	//Datei konnte geoeffnet werden
 		printf("Datei ist lesbar\n");
-		readjobs(fp, jobs, 6, 6);
-		printf("\n\n%i", jobs[5][5]);
-		/*for (int i = 0; i < 6; i++) {
-			printf("\n");
-			for (int j = 0; j < 6; j++) {
-				printf("%d ", jobs[i][j]);
+		//readjobs(fp, &jobs, 6, 6);
+
+		if (jobs == NULL) {
+			printf("NULLPOINTER");
+		}
+		else {
+			//printf("\n\n%i", jobs[2][2]);
+
+			for (int i = 0; i < 6; i++) {
+				printf("\n");
+				for (int j = 0; j < 6; j++) {
+					printf("%i ", jobs[i][j]);
+				}
 			}
-		}*/
+		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
-
 
 	MPI_Finalize();
 
