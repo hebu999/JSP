@@ -29,25 +29,38 @@ int ** createMatrix(int rows, int columns) {
 }
 
 //Funktion zum einlesen der Job Textdatei
-int readjobs(FILE* fp,int ***array, int linesToRead, int facilityCount) {
+readjobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToRead) {
 	int ch = 0;
-	int rows = 0;
-	fscanf(fp, "%i", &rows);
-	*array = createMatrix(rows, facilityCount);
-	printf("\nReading file\n");
+	fscanf(fp, "%i", jobcount);
+	printf("read %i jobs\n", *jobcount);
+	if (linesToRead < *jobcount) *jobcount = linesToRead;
+	*array = createMatrix(*jobcount, facilityCount);
+	printf("Reading Jobs\n");
 
-	for (int m = 0; m < rows; m++) {
-		for (int n = 0; n < facilityCount; n++){
+	for (int m = 0; m < *jobcount; m++) {
+		for (int n = 0; n < facilityCount; n++) {
 			fscanf(fp, "%i", &ch);
 			(*array)[m][n] = ch;
 		}
 	}
 }
 
+readfacilitys(FILE* fp, int **array, int *facilityCount) {
+	int ch = 0;
+	fscanf(fp, "%i", facilityCount);
+	*array = malloc(*facilityCount * sizeof *array);
+	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
+	printf("Reading Facilitys\n");
+
+	for (int m = 0; m < *facilityCount; m++) {
+		fscanf(fp, "%i", &ch);
+		(*array)[m] = ch;
+	}
+}
+
 int main(int argc, char** argv) {
 
-	int facilities_count = -1;
-	int jobs_count = -1;
+	
 	MPI_Init(&argc, &argv);
 
 	/*
@@ -60,33 +73,53 @@ int main(int argc, char** argv) {
 	tag, MPI_Comm comm, MPI_Status *status);
 	*/
 
-
+	int *facilities;
+	int **jobs;
+	int facilitycount;
+	int jobcount;
 
 	FILE *fp;	//Zeiger für Datei
-	fp = fopen("jobs.txt", "r");	//Dateizugriff, Datei als read 
-
 	
-
+	fp = fopen("facilities.txt", "r");	//Dateizugriff, Datei als read 
 	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
 	else {	//Datei konnte geoeffnet werden
-		printf("Datei ist lesbar\n");
-
-		int **jobs;
-		readjobs(fp,&jobs, 6, 6);
-
-		if (jobs == NULL)printf("nullpointer");
+		printf("facilities.txt ist lesbar\n");
+		readfacilitys(fp, &facilities, &facilitycount);
+		if (facilities == NULL) printf("facilities - nullpointer");
 		else {
-			for (int i = 0; i < 6; i++) {
-				printf("\n");
-				for (int j = 0; j < 6; j++) {
-					printf("%i ", jobs[i][j]);
-				}
+			for (int i = 0; i < facilitycount ; i++) {
+				printf("%i \n", facilities[i]);
 			}
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
+
+
+
+
+	fp = fopen("jobs.txt", "r");	//Dateizugriff, Datei als read 
+	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
+		printf("Datei konnte nicht geoeffnet werden!!\n");
+	}
+	else {	//Datei konnte geoeffnet werden
+		printf("jobs.txt ist lesbar\n");
+		readjobs(fp,&jobs,&jobcount, facilitycount, 6);
+		if (jobs == NULL) printf("jobs - nullpointer");
+		else {
+			for (int i = 0; i < jobcount; i++) {
+				for (int j = 0; j < facilitycount; j++) {
+					printf("%i ", jobs[i][j]);
+				}
+				printf("\n");
+			}
+		}
+		fclose(fp);	//Dateizugriff wieder freigeben
+	}
+
+
+
 
 	MPI_Finalize();
 	getchar();
