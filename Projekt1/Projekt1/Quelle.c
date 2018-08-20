@@ -26,7 +26,7 @@ int ** createMatrix(int rows, int columns) {
 }
 
 //Funktion zum einlesen der Job Textdatei
-int ** readjobs(FILE* fp, int linesToRead, int facilityCount) {
+readjobs(FILE* fp,int ***array, int linesToRead, int facilityCount) {
 	int ch = 0;
 	int rows = 0;
 	while ((ch = fgetc(fp)) != '\n')
@@ -35,7 +35,7 @@ int ** readjobs(FILE* fp, int linesToRead, int facilityCount) {
 		//rows = rows * 10 + (ch - 48);
 	}
 
-	int ** array = createMatrix(rows, facilityCount);
+	*array = createMatrix(rows, facilityCount);
 	int i = 0, j = 0;
 	printf("\nReading file\n");
 	while ((ch = fgetc(fp)) != EOF)
@@ -51,8 +51,7 @@ int ** readjobs(FILE* fp, int linesToRead, int facilityCount) {
 		}
 		else
 		{
-			//array[i][j] = (array[i][j] * 10) + (ch - 48);
-			array[i][j] = ch - 48;
+			(*array)[i][j] = ch - 48;
 		}
 	}
 	return array;
@@ -85,9 +84,10 @@ int main(int argc, char** argv) {
 	else {	//Datei konnte geoeffnet werden
 		printf("Datei ist lesbar\n");
 
-		int ** jobs = readjobs(fp, 6, 6);
+		int **jobs;
+		readjobs(fp,&jobs, 6, 6);
 
-		if (jobs == NULL)printf("nullpionter");
+		if (jobs == NULL)printf("nullpointer");
 		else {
 			for (int i = 0; i < 6; i++) {
 				printf("\n");
