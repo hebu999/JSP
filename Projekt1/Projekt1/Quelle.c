@@ -6,7 +6,10 @@
 *
 */
 #define _CRT_SECURE_NO_DEPRECATE
+
+#define _GNU_SOURCE
 #include <mpi.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -26,35 +29,19 @@ int ** createMatrix(int rows, int columns) {
 }
 
 //Funktion zum einlesen der Job Textdatei
-readjobs(FILE* fp,int ***array, int linesToRead, int facilityCount) {
+int readjobs(FILE* fp,int ***array, int linesToRead, int facilityCount) {
 	int ch = 0;
 	int rows = 0;
-	while ((ch = fgetc(fp)) != '\n')
-	{
-		rows = ch - 48;
-		//rows = rows * 10 + (ch - 48);
-	}
-
+	fscanf(fp, "%i", &rows);
 	*array = createMatrix(rows, facilityCount);
-	int i = 0, j = 0;
 	printf("\nReading file\n");
-	while ((ch = fgetc(fp)) != EOF)
-	{
-		if (ch == '\n')
-		{
-			i++;
-			j = 0;
-		}
-		else if (ch == ' ')
-		{
-			j++;
-		}
-		else
-		{
-			(*array)[i][j] = ch - 48;
+
+	for (int m = 0; m < rows; m++) {
+		for (int n = 0; n < facilityCount; n++){
+			fscanf(fp, "%i", &ch);
+			(*array)[m][n] = ch;
 		}
 	}
-	return array;
 }
 
 int main(int argc, char** argv) {
@@ -77,6 +64,8 @@ int main(int argc, char** argv) {
 
 	FILE *fp;	//Zeiger für Datei
 	fp = fopen("jobs.txt", "r");	//Dateizugriff, Datei als read 
+
+	
 
 	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
