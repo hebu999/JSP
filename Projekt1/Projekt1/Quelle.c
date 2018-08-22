@@ -60,8 +60,6 @@ readfacilitys(FILE* fp, int **array, int *facilityCount) {
 
 solveProblem(int * facilities, int **jobs) {
 
-	int *facilities;
-	int **jobs;
 	int ***allTask;
 
 	while (1)
