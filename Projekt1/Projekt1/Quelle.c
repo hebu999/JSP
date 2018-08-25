@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <Windows.h>
 
 //Funktion zum erstellen einer 2D-Matrix
 int ** createMatrix(int rows, int columns) {
@@ -63,10 +64,10 @@ solveProblem(int * facilities, int **jobs) {
 
 	int ***allTask;
 
-	for (int i = 0; i < jobs[i]; i++)
+	for (int i = 0; i < (*jobs)[i]; i++)
 	{
 		
-		
+		 
 
 
 
@@ -78,7 +79,16 @@ int main(int argc, char** argv) {
 	
 	// MPI wird initalisiert
 	MPI_Init(&argc, &argv);
-
+	
+	if (argc < 3) {
+		printf("nicht ausreichend parameter bei Programmaufruf\nProgramm wird beendet\n");
+		system("pause");
+		exit(1);
+	}
+	int linesToRead;
+	if (argv[1])  linesToRead = argv[1];
+	int verbosity;
+	if (argv[2]) verbosity = argv[2];
 	/*
 	int MPI_Send(void *buf, int count,
 	MPI_Datatype datatype, int dest, int
@@ -119,7 +129,7 @@ int main(int argc, char** argv) {
 	}
 	else {	//Datei konnte geoeffnet werden
 		printf("jobs.txt ist lesbar\n");
-		readjobs(fp,&jobs,&jobcount, facilitycount, 6);
+		readjobs(fp,&jobs,&jobcount, facilitycount, linesToRead);
 		if (jobs == NULL) printf("jobs - nullpointer");
 		else {
 			for (int i = 0; i < jobcount; i++) {
@@ -131,9 +141,18 @@ int main(int argc, char** argv) {
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
+	// funktionsblock um die Jobs darzustellen
+	if (verbosity == 1 || verbosity == 3) {
+		
+	}
 
-
+	// funktionsblock um die Zeit darzustellen
+	if (verbosity == 2 || verbosity == 3) {
+		
+	}
+	
 	MPI_Finalize();
-	getchar();
+	
+	system("pause");
 	return 0;
 }
