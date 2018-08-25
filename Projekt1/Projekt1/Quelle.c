@@ -1,8 +1,8 @@
 /*
 * Heiner Büscher, Steffen Tietzel
 * Programm zur parallelisierung des Job-Shop Problems
-*
-*
+* 
+* 02.08.18
 *
 */
 #define _CRT_SECURE_NO_DEPRECATE
@@ -44,7 +44,7 @@ readjobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToR
 		}
 	}
 }
-
+//Facilitys werden aus der Textdatei eingelesen
 readfacilitys(FILE* fp, int **array, int *facilityCount) {
 	int ch = 0;
 	fscanf(fp, "%i", facilityCount);
@@ -58,14 +58,15 @@ readfacilitys(FILE* fp, int **array, int *facilityCount) {
 	}
 }
 
+//Funktion zum lösen des Problems
 solveProblem(int * facilities, int **jobs) {
 
 	int ***allTask;
 
-	while (1)
+	for (int i = 0; i < jobs[i]; i++)
 	{
-
-
+		
+		
 
 
 
@@ -74,8 +75,8 @@ solveProblem(int * facilities, int **jobs) {
 }
 
 int main(int argc, char** argv) {
-
 	
+	// MPI wird initalisiert
 	MPI_Init(&argc, &argv);
 
 	/*
@@ -93,13 +94,14 @@ int main(int argc, char** argv) {
 	int facilitycount;
 	int jobcount;
 
-	FILE *fp;	//Zeiger für Datei
+	//Zeiger für Datei
+	FILE *fp;
 	
-	fp = fopen("facilities.txt", "r");	//Dateizugriff, Datei als read 
-	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
+	fp = fopen("facilities.txt", "r");	// Dateizugriff, Datei als read zugegriffen
+	if (fp == NULL) {	// falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
-	else {	//Datei konnte geoeffnet werden
+	else {	// Datei konnte geoeffnet werden
 		printf("facilities.txt ist lesbar\n");
 		readfacilitys(fp, &facilities, &facilitycount);
 		if (facilities == NULL) printf("facilities - nullpointer");
@@ -110,9 +112,6 @@ int main(int argc, char** argv) {
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
-
-
-
 
 	fp = fopen("jobs.txt", "r");	//Dateizugriff, Datei als read 
 	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
@@ -132,8 +131,6 @@ int main(int argc, char** argv) {
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
-
-
 
 
 	MPI_Finalize();
