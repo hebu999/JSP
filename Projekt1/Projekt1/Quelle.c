@@ -60,18 +60,31 @@ readfacilitys(FILE* fp, int **array, int *facilityCount) {
 }
 
 //Funktion zum lösen des Problems
-solveProblem(int * facilities, int **jobs) {
+solveProblem(int * facilities, int **jobs, int facilitycount, int *jobcount) {
 
-	int ***allTask;
+	//int ***allTask;
+	int usedTime = 0;
 
-	for (int i = 0; i < (*jobs)[i]; i++)
-	{
-		
-		 
+	int ***result = createMatrix(*jobcount, facilitycount);
+
+	for (int i = 0; i < jobcount; i++) {
+		for (int j = 0; j < facilitycount; j++) {
 
 
+
+			usedTime += facilities[j];
+			jobs[i][j];
+
+
+
+			printf("%s, %i", "facilities: ", facilities[j]);
+			printf("%s, %i", "UsedTime: ", usedTime);
+
+
+		}
 
 	}
+
 
 }
 
@@ -79,13 +92,25 @@ int main(int argc, char** argv) {
 	
 	// MPI wird initalisiert
 	MPI_Init(&argc, &argv);
-	
+
+	int *facilities;
+	int **jobs;
+	int facilitycount;
+	int jobcount;
+	int linesToRead;
+	int process_count, rank;
+
+	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	/*
 	if (argc < 3) {
-		printf("nicht ausreichend parameter bei Programmaufruf\nProgramm wird beendet\n");
+		printf("Nicht ausreichend Parameter bei Programmaufruf(Anzahl zu lesender Jobs, Verbosity), das Programm terminiert sich jetzt selbst\n");
 		system("pause");
 		exit(1);
 	}
-	int linesToRead;
+	*/
+	
 	if (argv[1])  linesToRead = argv[1];
 	int verbosity;
 	if (argv[2]) verbosity = argv[2];
@@ -99,11 +124,6 @@ int main(int argc, char** argv) {
 	tag, MPI_Comm comm, MPI_Status *status);
 	*/
 
-	int *facilities;
-	int **jobs;
-	int facilitycount;
-	int jobcount;
-
 	//Zeiger für Datei
 	FILE *fp;
 	
@@ -114,7 +134,7 @@ int main(int argc, char** argv) {
 	else {	// Datei konnte geoeffnet werden
 		printf("facilities.txt ist lesbar\n");
 		readfacilitys(fp, &facilities, &facilitycount);
-		if (facilities == NULL) printf("facilities - nullpointer");
+		if (facilities == NULL) printf("Keine Facilities vorhanden!");
 		else {
 			for (int i = 0; i < facilitycount ; i++) {
 				printf("%i \n", facilities[i]);
@@ -123,15 +143,17 @@ int main(int argc, char** argv) {
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
 
-	fp = fopen("jobs.txt", "r");	//Dateizugriff, Datei als read 
+	linesToRead = 7;
+	fp = fopen("jobs.txt", "r"); //Dateizugriff, Datei als read 
 	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
 	else {	//Datei konnte geoeffnet werden
 		printf("jobs.txt ist lesbar\n");
 		readjobs(fp,&jobs,&jobcount, facilitycount, linesToRead);
-		if (jobs == NULL) printf("jobs - nullpointer");
+		if (jobs == NULL) printf("Keine Jobs vorhanden!");
 		else {
+			solveProblem(&facilities, &jobs, facilitycount, jobcount);
 			for (int i = 0; i < jobcount; i++) {
 				for (int j = 0; j < facilitycount; j++) {
 					printf("%i ", jobs[i][j]);
@@ -141,6 +163,7 @@ int main(int argc, char** argv) {
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
+
 	// funktionsblock um die Jobs darzustellen
 	if (verbosity == 1 || verbosity == 3) {
 		
