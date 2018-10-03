@@ -1,8 +1,8 @@
 /*
 * Heiner Büscher, Steffen Tietzel
-* Programm zur parallelisierung des Job-Shop Problems
+* Programm zur parallelisierung des Clostest String Problems
 * 
-* 02.08.18
+* 30.09.18
 *
 */
 #define _CRT_SECURE_NO_DEPRECATE
@@ -29,7 +29,7 @@ int ** createMatrix(int rows, int columns) {
 	return ret;
 }
 
-//Funktion zum einlesen der Job Textdatei
+//Funktion zum einlesen der String Textdatei
 readjobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToRead) {
 	int ch = 0;
 	fscanf(fp, "%i", jobcount);
@@ -45,7 +45,7 @@ readjobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToR
 		}
 	}
 }
-//Facilitys werden aus der Textdatei eingelesen
+//Strings werden aus der Textdatei eingelesen
 readfacilitys(FILE* fp, int **array, int *facilityCount) {
 	int ch = 0;
 	fscanf(fp, "%i", facilityCount);
@@ -61,30 +61,6 @@ readfacilitys(FILE* fp, int **array, int *facilityCount) {
 
 //Funktion zum lösen des Problems
 solveProblem(int * facilities, int **jobs, int facilitycount, int *jobcount) {
-
-	//int ***allTask;
-	int usedTime = 0;
-
-	int ***result = createMatrix(*jobcount, facilitycount);
-
-	for (int i = 0; i < jobcount; i++) {
-		for (int j = 0; j < facilitycount; j++) {
-
-
-
-			usedTime += facilities[j];
-			jobs[i][j];
-
-
-
-			printf("%s, %i", "facilities: ", facilities[j]);
-			printf("%s, %i", "UsedTime: ", usedTime);
-
-
-		}
-
-	}
-
 
 }
 
