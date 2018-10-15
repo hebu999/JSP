@@ -1,6 +1,6 @@
 /*
 * Heiner Büscher, Steffen Tietzel
-* Programm zur parallelisierung des Clostest String Problems
+* Programm zur parallelisierung des Closest String Problems
 * 
 * 30.09.18
 *
@@ -30,7 +30,7 @@ int ** createMatrix(int rows, int columns) {
 }
 
 //Funktion zum einlesen der String Textdatei
-readjobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToRead) {
+readJobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToRead) {
 	int ch = 0;
 	fscanf(fp, "%i", jobcount);
 	printf("read %i jobs\n", *jobcount);
@@ -46,7 +46,7 @@ readjobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToR
 	}
 }
 //Strings werden aus der Textdatei eingelesen
-readfacilitys(FILE* fp, int **array, int *facilityCount) {
+readStrings(FILE* fp, int **array, int *facilityCount) {
 	int ch = 0;
 	fscanf(fp, "%i", facilityCount);
 	*array = malloc(*facilityCount * sizeof *array);
@@ -69,9 +69,8 @@ int main(int argc, char** argv) {
 	// MPI wird initalisiert
 	MPI_Init(&argc, &argv);
 
-	int *facilities;
-	int **jobs;
-	int facilitycount;
+	int *strings;
+	int stringcount;
 	int jobcount;
 	int linesToRead;
 	int process_count, rank;
@@ -81,7 +80,7 @@ int main(int argc, char** argv) {
 
 	/*
 	if (argc < 3) {
-		printf("Nicht ausreichend Parameter bei Programmaufruf(Anzahl zu lesender Jobs, Verbosity), das Programm terminiert sich jetzt selbst\n");
+		printf("Nicht ausreichend Parameter bei Programmaufruf(Anzahl zu lesender Strings, Verbosity), das Programm terminiert sich jetzt selbst\n");
 		system("pause");
 		exit(1);
 	}
@@ -103,35 +102,35 @@ int main(int argc, char** argv) {
 	//Zeiger für Datei
 	FILE *fp;
 	
-	fp = fopen("facilities.txt", "r");	// Dateizugriff, Datei als read zugegriffen
+	fp = fopen("strings.txt", "r");	// Dateizugriff, Datei als read zugegriffen
 	if (fp == NULL) {	// falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
 	else {	// Datei konnte geoeffnet werden
-		printf("facilities.txt ist lesbar\n");
-		readfacilitys(fp, &facilities, &facilitycount);
-		if (facilities == NULL) printf("Keine Facilities vorhanden!");
+		printf("strings.txt ist lesbar\n");
+		readfacilitys(fp, &stringcount);
+		if (&strings == NULL) printf("Keine Facilities vorhanden!");
 		else {
-			for (int i = 0; i < facilitycount ; i++) {
-				printf("%i \n", facilities[i]);
+			for (int i = 0; i < stringcount ; i++) {
+				printf("%i \n", strings[i]);
 			}
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
 
 	linesToRead = 7;
-	fp = fopen("jobs.txt", "r"); //Dateizugriff, Datei als read 
+	fp = fopen("strings.txt", "r"); //Dateizugriff, Datei als read 
 	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
 	else {	//Datei konnte geoeffnet werden
 		printf("jobs.txt ist lesbar\n");
-		readjobs(fp,&jobs,&jobcount, facilitycount, linesToRead);
+		readStrings(fp,&jobs,&jobcount, stringcount, linesToRead);
 		if (jobs == NULL) printf("Keine Jobs vorhanden!");
 		else {
-			solveProblem(&facilities, &jobs, facilitycount, jobcount);
+			solveProblem(&jobs, stringcount, );
 			for (int i = 0; i < jobcount; i++) {
-				for (int j = 0; j < facilitycount; j++) {
+				for (int j = 0; j < stringcount; j++) {
 					printf("%i ", jobs[i][j]);
 				}
 				printf("\n");
