@@ -1,6 +1,6 @@
 /*
 * Heiner Büscher, Steffen Tietzel
-* Programm zur parallelisierung des Closest String Problems
+* Programm zur parallelisierung des Closest-String Problems
 * 
 * 30.09.18
 *
@@ -16,7 +16,7 @@
 #include <string.h>
 #include <Windows.h>
 
-//Funktion zum erstellen einer 2D-Matrix
+//Funktion zum erstellen eines 2D-Matrix-Arrays
 int ** createMatrix(int rows, int columns) {
 	printf("Create Matrix with %d rows and %d columns\n", rows, columns);
 	int **ret;
@@ -51,7 +51,7 @@ readStrings(FILE* fp, int **array, int *facilityCount) {
 	fscanf(fp, "%i", facilityCount);
 	*array = malloc(*facilityCount * sizeof *array);
 	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
-	printf("Reading Facilitys\n");
+	printf("Reading Strings\n");
 
 	for (int m = 0; m < *facilityCount; m++) {
 		fscanf(fp, "%i", &ch);
@@ -59,10 +59,43 @@ readStrings(FILE* fp, int **array, int *facilityCount) {
 	}
 }
 
-//Funktion zum lösen des Problems
-solveProblem(int * facilities, int **jobs, int facilitycount, int *jobcount) {
+//Funktion zum berechnen der Hamming-Distanz
+int hammingDistance(char *str1, char *str2) 
+{
+	int i = 0, count = 0;
+
+	while (str1[i] != "")
+	{
+		if (str1[i] != str2[i])
+			count++;
+		i++;
+	}
+	return count;
 
 }
+
+//Funktion um korrekten String zu finden (Entwurf)
+char findClosestString(int linesToRead, int **strings, int stringLength)
+{
+	char closestString = 0;
+
+	for (int i = 0; i < linesToRead; i++)
+	{
+		for (int j = 0; j < stringLength; j++)
+		{
+			if (hammingDistance(strings[i][j], strings[i][j - 1] > 0))
+
+			{
+				closestString += 1;
+
+			
+			}
+
+		}
+	}
+	return closestString;
+}
+
 
 int main(int argc, char** argv) {
 	
@@ -74,6 +107,9 @@ int main(int argc, char** argv) {
 	int jobcount;
 	int linesToRead;
 	int process_count, rank;
+	int verbosity;
+
+	int distance;
 
 	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -87,8 +123,18 @@ int main(int argc, char** argv) {
 	*/
 	
 	if (argv[1])  linesToRead = argv[1];
-	int verbosity;
+	
 	if (argv[2]) verbosity = argv[2];
+
+	// funktionsblock um die Strings darzustellen
+	if (verbosity == 1 || verbosity == 3) {
+
+	}
+
+	// funktionsblock um die Zeit darzustellen
+	if (verbosity == 2 || verbosity == 3) {
+
+	}
 	/*
 	int MPI_Send(void *buf, int count,
 	MPI_Datatype datatype, int dest, int
@@ -109,7 +155,7 @@ int main(int argc, char** argv) {
 	else {	// Datei konnte geoeffnet werden
 		printf("strings.txt ist lesbar\n");
 		readfacilitys(fp, &stringcount);
-		if (&strings == NULL) printf("Keine Facilities vorhanden!");
+		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
 			for (int i = 0; i < stringcount ; i++) {
 				printf("%i \n", strings[i]);
@@ -128,10 +174,9 @@ int main(int argc, char** argv) {
 		readStrings(fp,&jobs,&jobcount, stringcount, linesToRead);
 		if (jobs == NULL) printf("Keine Jobs vorhanden!");
 		else {
-			solveProblem(&jobs, stringcount, );
 			for (int i = 0; i < jobcount; i++) {
 				for (int j = 0; j < stringcount; j++) {
-					printf("%i ", jobs[i][j]);
+					printf("%i ", jobs[i][j]); //TODO an Strings anpassen
 				}
 				printf("\n");
 			}
@@ -139,16 +184,6 @@ int main(int argc, char** argv) {
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
 
-	// funktionsblock um die Jobs darzustellen
-	if (verbosity == 1 || verbosity == 3) {
-		
-	}
-
-	// funktionsblock um die Zeit darzustellen
-	if (verbosity == 2 || verbosity == 3) {
-		
-	}
-	
 	MPI_Finalize();
 	
 	system("pause");
