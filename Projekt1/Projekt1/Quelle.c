@@ -29,6 +29,8 @@ int ** createMatrix(int rows, int columns) {
 	return ret;
 }
 
+
+/*
 //Funktion zum einlesen der String Textdatei
 readJobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToRead) {
 	int ch = 0;
@@ -45,15 +47,19 @@ readJobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToR
 		}
 	}
 }
+*/
+
+
 //Strings werden aus der Textdatei eingelesen
-readStrings(FILE* fp, int **array, int *facilityCount) {
+readStrings(FILE* fp, int **array, int *anzStrings, int *anzZeichen) {
 	int ch = 0;
-	fscanf(fp, "%i", facilityCount);
-	*array = malloc(*facilityCount * sizeof *array);
+	fscanf(fp, "%i", anzStrings);
+	fscanf(fp, "%i", anzZeichen);
+	*array = malloc(*anzStrings * sizeof *array);
 	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
 	printf("Reading Strings\n");
 
-	for (int m = 0; m < *facilityCount; m++) {
+	for (int m = 0; m < *anzStrings; m++) {
 		fscanf(fp, "%i", &ch);
 		(*array)[m] = ch;
 	}
@@ -104,7 +110,6 @@ int main(int argc, char** argv) {
 
 	int *strings;
 	int stringcount;
-	int jobcount;
 	int linesToRead;
 	int process_count, rank;
 	int verbosity;
@@ -154,7 +159,7 @@ int main(int argc, char** argv) {
 	}
 	else {	// Datei konnte geoeffnet werden
 		printf("strings.txt ist lesbar\n");
-		readfacilitys(fp, &stringcount);
+		readStrings(fp, &stringcount);
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
 			for (int i = 0; i < stringcount ; i++) {
@@ -164,14 +169,14 @@ int main(int argc, char** argv) {
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
 
-	linesToRead = 7;
+	linesToRead = 6;
 	fp = fopen("strings.txt", "r"); //Dateizugriff, Datei als read 
 	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
 	else {	//Datei konnte geoeffnet werden
 		printf("jobs.txt ist lesbar\n");
-		readStrings(fp,&jobs,&jobcount, stringcount, linesToRead);
+		readStrings(fp,&strings, &stringcount, linesToRead);
 		if (jobs == NULL) printf("Keine Jobs vorhanden!");
 		else {
 			for (int i = 0; i < jobcount; i++) {
