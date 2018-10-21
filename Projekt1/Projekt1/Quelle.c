@@ -51,22 +51,25 @@ readJobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToR
 
 
 //Strings werden aus der Textdatei eingelesen
-readStrings(FILE* fp, int **array, int *anzStrings, int *anzZeichen) {
+readStrings(FILE* fp, int **array, int *stringcount, int *stringlength, int linesToRead) {
 	int ch = 0;
-	fscanf(fp, "%i", anzStrings);
-	fscanf(fp, "%i", anzZeichen);
-	*array = malloc(*anzStrings * sizeof *array);
+	fscanf(fp, "%i", stringcount);
+	fscanf(fp, "%i", stringlength);
+	*array = malloc(*stringcount * sizeof *array);
+
 	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
 	printf("Reading Strings\n");
 
-	for (int m = 0; m < *anzStrings; m++) {
-		fscanf(fp, "%i", &ch);
-		(*array)[m] = ch;
+	for (int m = 0; m < *stringcount || m < linesToRead; m++) {
+			fscanf(fp, "%s", &ch);
+			(*array)[m] = ch;
+		
 	}
 }
 
 //Funktion zum berechnen der Hamming-Distanz
-int hammingDistance(char *str1, char *str2) 
+
+int hammingDistance(char *str1, char *str2)
 {
 	int i = 0, count = 0;
 
@@ -81,23 +84,22 @@ int hammingDistance(char *str1, char *str2)
 }
 
 //Funktion um korrekten String zu finden (Entwurf)
-char findClosestString(int linesToRead, int **strings, int stringLength)
+char findClosestString(int linesToRead, int ***strings, int stringLength)
 {
 	char closestString = 0;
+	char besthammingDistance;
 
-	for (int i = 0; i < linesToRead; i++)
+	for (int i = 1; i < linesToRead; i++)
 	{
-		for (int j = 0; j < stringLength; j++)
-		{
-			if (hammingDistance(strings[i][j], strings[i][j - 1] > 0))
+		
+		if (hammingDistance(&strings[i], &strings[i - 1] > 0))
 
-			{
-				closestString += 1;
+		{
+			closestString += 1;
 
 			
-			}
-
 		}
+
 	}
 	return closestString;
 }
@@ -110,11 +112,12 @@ int main(int argc, char** argv) {
 
 	int *strings;
 	int stringcount;
+	int stringlength;
 	int linesToRead;
 	int process_count, rank;
 	int verbosity;
 
-	int distance;
+	int distance=384;
 
 	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -127,9 +130,9 @@ int main(int argc, char** argv) {
 	}
 	*/
 	
-	if (argv[1])  linesToRead = argv[1];
+	if (argv[1]) linesToRead = (int)*argv[1];
 	
-	if (argv[2]) verbosity = argv[2];
+	if (argv[2]) verbosity = (int)*argv[2];
 
 	// funktionsblock um die Strings darzustellen
 	if (verbosity == 1 || verbosity == 3) {
@@ -150,6 +153,8 @@ int main(int argc, char** argv) {
 	tag, MPI_Comm comm, MPI_Status *status);
 	*/
 
+	linesToRead = 6;
+
 	//Zeiger für Datei
 	FILE *fp;
 	
@@ -159,31 +164,16 @@ int main(int argc, char** argv) {
 	}
 	else {	// Datei konnte geoeffnet werden
 		printf("strings.txt ist lesbar\n");
-		readStrings(fp, &stringcount);
+		readStrings(fp, &strings, &stringcount, &stringlength, linesToRead);
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
-			for (int i = 0; i < stringcount ; i++) {
-				printf("%i \n", strings[i]);
-			}
-		}
-		fclose(fp);	//Dateizugriff wieder freigeben
-	}
-
-	linesToRead = 6;
-	fp = fopen("strings.txt", "r"); //Dateizugriff, Datei als read 
-	if (fp == NULL) {	//falls die Datei nicht geoeffnet werden kann
-		printf("Datei konnte nicht geoeffnet werden!!\n");
-	}
-	else {	//Datei konnte geoeffnet werden
-		printf("jobs.txt ist lesbar\n");
-		readStrings(fp,&strings, &stringcount, linesToRead);
-		if (jobs == NULL) printf("Keine Jobs vorhanden!");
-		else {
-			for (int i = 0; i < jobcount; i++) {
-				for (int j = 0; j < stringcount; j++) {
-					printf("%i ", jobs[i][j]); //TODO an Strings anpassen
+			printf("%i \n", stringcount);
+			printf("%i \n", stringlength);
+			for (int i = 0; i < stringcount; i++) {
+				for (int j = 0; j < stringlength; j++) {
+					printf("%s", strings[i]);
 				}
-				printf("\n");
+			printf(" \n");
 			}
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
