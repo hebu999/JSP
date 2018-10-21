@@ -51,30 +51,35 @@ readJobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToR
 
 
 //Strings werden aus der Textdatei eingelesen
-readStrings(FILE* fp, int **array, int *stringcount, int *stringlength, int linesToRead) {
-	int ch = 0;
+readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int linesToRead) {
+	char ch = 0;
 	fscanf(fp, "%i", stringcount);
 	fscanf(fp, "%i", stringlength);
-	*array = malloc(*stringcount * sizeof *array);
+	fscanf(fp, "%c", &ch);
+	*array = createMatrix(*stringcount, *stringlength);
 
 	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
 	printf("Reading Strings\n");
 
 	for (int m = 0; m < *stringcount || m < linesToRead; m++) {
-			fscanf(fp, "%s", &ch);
-			(*array)[m] = ch;
-		
+		for (int n = 0; n < *stringlength; n++) {
+			fscanf(fp, "%c", &ch);
+			(*array)[m][n] = ch;
+		}
+		fscanf(fp, "%c", &ch);
 	}
 }
 
 //Funktion zum berechnen der Hamming-Distanz
 
-int hammingDistance(char *str1, char *str2)
+int hammingDistance(int *str1, int *str2, int stringLength)
 {
+	printf("hammingDistFunction\n");
 	int i = 0, count = 0;
 
-	while (str1[i] != "")
+	while (i < stringLength)
 	{
+		printf("%c != %c\n", str1[i], str2[i]);
 		if (str1[i] != str2[i])
 			count++;
 		i++;
@@ -86,31 +91,39 @@ int hammingDistance(char *str1, char *str2)
 //Funktion um korrekten String zu finden (Entwurf)
 char findClosestString(int linesToRead, int ***strings, int stringLength)
 {
-	char closestString = 0;
-	char besthammingDistance;
+	char closestString = -1;
+	int allHammingDistance = 0;
+	int currentHammingDistance;
 
 	for (int i = 1; i < linesToRead; i++)
 	{
-		
-		if (hammingDistance(&strings[i], &strings[i - 1] > 0))
+		if (hammingDistance((*strings)[i], (*strings)[i - 1], stringLength) > 0)
 
 		{
-			closestString += 1;
-
-			
+			currentHammingDistance = hammingDistance((*strings)[i], (*strings)[i - 1], stringLength);
+			allHammingDistance += currentHammingDistance;
+			printf("Hamming-Distanz: \n");
+			printf("%i \n", currentHammingDistance);
+			printf("%i \n", allHammingDistance);		
 		}
 
 	}
 	return closestString;
 }
 
+void test(int *arr) {
+	for (int i = 0; i < 6; i++) {
+		printf("%c",arr[i]);
+	}
+
+}
 
 int main(int argc, char** argv) {
 	
 	// MPI wird initalisiert
 	MPI_Init(&argc, &argv);
 
-	int *strings;
+	int **strings=NULL;
 	int stringcount;
 	int stringlength;
 	int linesToRead;
@@ -167,18 +180,21 @@ int main(int argc, char** argv) {
 		readStrings(fp, &strings, &stringcount, &stringlength, linesToRead);
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
+			printf("\nStart find closest string\n");
+			findClosestString(linesToRead, &strings, stringlength);
+			printf("\nEnd find closest string\n");
 			printf("%i \n", stringcount);
 			printf("%i \n", stringlength);
 			for (int i = 0; i < stringcount; i++) {
 				for (int j = 0; j < stringlength; j++) {
-					printf("%s", strings[i]);
+					printf("%c", strings[i][j]);
 				}
-			printf(" \n");
+				printf("\n");
+
 			}
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
-
 	MPI_Finalize();
 	
 	system("pause");
