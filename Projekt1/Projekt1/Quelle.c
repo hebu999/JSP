@@ -30,26 +30,6 @@ int ** createMatrix(int rows, int columns) {
 }
 
 
-/*
-//Funktion zum einlesen der String Textdatei
-readJobs(FILE* fp, int ***array, int *jobcount,  int facilityCount, int linesToRead) {
-	int ch = 0;
-	fscanf(fp, "%i", jobcount);
-	printf("read %i jobs\n", *jobcount);
-	if (linesToRead < *jobcount) *jobcount = linesToRead;
-	*array = createMatrix(*jobcount, facilityCount);
-	printf("Reading Jobs\n");
-
-	for (int m = 0; m < *jobcount; m++) {
-		for (int n = 0; n < facilityCount; n++) {
-			fscanf(fp, "%i", &ch);
-			(*array)[m][n] = ch;
-		}
-	}
-}
-*/
-
-
 //Strings werden aus der Textdatei eingelesen
 readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int linesToRead) {
 	char ch = 0;
@@ -71,43 +51,35 @@ readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int lin
 }
 
 //Funktion zum berechnen der Hamming-Distanz
-
-int hammingDistance(int *str1, int *str2, int stringLength)
+int hammingDistance(int *str1, char str2[], int stringLength)
 {
-	printf("hammingDistFunction\n");
 	int i = 0, count = 0;
 
 	while (i < stringLength)
 	{
-		printf("%c != %c\n", str1[i], str2[i]);
+		//printf("\n");
+		//printf("%c != %c\n", str1[i], str2[i]);
 		if (str1[i] != str2[i])
 			count++;
 		i++;
 	}
 	return count;
-
 }
 
+
 //Funktion um korrekten String zu finden (Entwurf)
-char findClosestString(int linesToRead, int ***strings, int stringLength)
+int *findClosestString( int ***strings, int stringcount, int stringLength)
 {
-	char closestString = -1;
-	int allHammingDistance = 0;
-	int currentHammingDistance;
+	int* closestString=malloc(stringLength*sizeof(char));
+	int closestDistance=-1;
 
-	for (int i = 1; i < linesToRead; i++)
-	{
-		if (hammingDistance((*strings)[i], (*strings)[i - 1], stringLength) > 0)
-
-		{
-			currentHammingDistance = hammingDistance((*strings)[i], (*strings)[i - 1], stringLength);
-			allHammingDistance += currentHammingDistance;
-			printf("Hamming-Distanz: \n");
-			printf("%i \n", currentHammingDistance);
-			printf("%i \n", allHammingDistance);		
-		}
-
+	int totalDistance=0;
+	for (int i = 1; i < stringcount; i++)
+	{		
+		totalDistance += hammingDistance((*strings)[i], "123450", stringLength);
+		printf("Hamming-Distanz: \n");
 	}
+	printf("%i \n", totalDistance);
 	return closestString;
 }
 
@@ -181,7 +153,7 @@ int main(int argc, char** argv) {
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
 			printf("\nStart find closest string\n");
-			findClosestString(linesToRead, &strings, stringlength);
+			findClosestString(&strings, linesToRead,  stringlength);
 			printf("\nEnd find closest string\n");
 			printf("%i \n", stringcount);
 			printf("%i \n", stringlength);
@@ -195,6 +167,10 @@ int main(int argc, char** argv) {
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
+	printf("\n");
+	test(strings[0]);
+	printf("\nhammingtest:%i\n", hammingDistance(strings[0], "234156", 6));
+
 	MPI_Finalize();
 	
 	system("pause");
