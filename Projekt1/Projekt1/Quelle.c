@@ -66,12 +66,12 @@ int hammingDistance(int *str1, char str2[], int stringLength)
 	return count;
 }
 
-int * convertToHex(int decimal, int stringlength)
+int * convertToHex(int* ret, long decimal, int stringlength)
 {
-	int remainder, quotient;
+	int remainder;
+	long quotient;
 	int j = 0;
 	char hexadecimal[16];
-	int *ret;
 	quotient = decimal;
 	while (quotient != 0){
 		remainder = quotient % 16;
@@ -83,7 +83,6 @@ int * convertToHex(int decimal, int stringlength)
 		}
 		quotient = quotient / 16;
 	}
-	ret = malloc(stringlength * sizeof(char));
 	
 	for (int i = 0; i<stringlength;i++) {
 		//printf("if (%i-%i>%i)\n", stringlength,i, j);
@@ -210,15 +209,16 @@ int main(int argc, char** argv) {
 	}
 	MPI_Finalize();
 	printf("\n\n");
-	int *tmp = NULL;
 	
 	
-	
-	for (int color = 0; color <= power(16,5)-1; ++color) {
+	int length = 5; //testvariable um die hex schleife zu testen
+
+	int *tmp = malloc(length * sizeof(char));
+	for (long color = 0; color <= power(16,length)-1; ++color) {
 		//printf("color: %5i    \n", color);
-		tmp=convertToHex(color,5);
+		convertToHex(tmp, color, length);
 		printf("%5i  ", color);
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < length; i++) {
 			printf("%c", tmp[i]);
 		}
 		printf("\n");
