@@ -34,14 +34,16 @@ int ** createMatrix(int rows, int columns) {
 readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int linesToRead) {
 	char ch = 0;
 	fscanf(fp, "%i", stringcount);
+	printf("stringcount: %i\n", *stringcount);
 	fscanf(fp, "%i", stringlength);
+	printf("stringlength: %i\n", *stringlength);
 	fscanf(fp, "%c", &ch);
 	*array = createMatrix(*stringcount, *stringlength);
 
 	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
 	printf("Reading Strings\n");
 
-	for (int m = 0; m < *stringcount || m < linesToRead; m++) {
+	for (int m = 0; m < *stringcount && m < linesToRead; m++) {
 		for (int n = 0; n < *stringlength; n++) {
 			fscanf(fp, "%c", &ch);
 			(*array)[m][n] = ch;
@@ -121,6 +123,8 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 		//printf("%5i  ", color);
 		for (int i = 0; i < stringcount; i++)
 		{
+			printf("stringcount: %i\n", stringcount);
+			printf("stringlength: %i\n", stringLength);
 			printf("checking String: ");
 			for (int j = 0; j < stringLength; j++) {
 				printf("%c", (*strings)[i][j]);
@@ -145,7 +149,12 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 			closestDistance = totalDistance;
 		}
 		printf("\n\n");
-	}	
+	}
+	printf("bestString: ");
+	for (int j = 0; j < stringLength; j++) {
+		printf("%c", closestString[j]);
+	}
+	printf(" with a Distance of %i\n", closestDistance);
 	return closestString;
 }
 
@@ -212,7 +221,7 @@ int main(int argc, char** argv) {
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
 			printf("\nStart find closest string\n");
-			findClosestString(&strings, linesToRead,  stringlength);
+			findClosestString(&strings, linesToRead, stringlength);
 			printf("\nEnd find closest string\n");
 			printf("%i \n", stringcount);
 			printf("%i \n", stringlength);
