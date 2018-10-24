@@ -66,10 +66,10 @@ int hammingDistance(int *str1, char str2[], int stringLength)
 	return count;
 }
 
-int * convertToHex(int* ret, long decimal, int stringlength)
+int * convertToHex(int* ret, unsigned long long decimal, int stringlength)
 {
 	int remainder;
-	long quotient;
+	unsigned long long quotient;
 	int j = 0;
 	char hexadecimal[16];
 	quotient = decimal;
@@ -123,8 +123,8 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 	return closestString;
 }
 
-int power(int base, unsigned int exp) {
-	int result = 1;
+unsigned long long power(int base, unsigned int exp) {
+	unsigned long long  result = 1;
 	for (unsigned int i = 0; i < exp; i++)
 		result *= base;
 	return result;
@@ -211,24 +211,17 @@ int main(int argc, char** argv) {
 	printf("\n\n");
 	
 	
-	int length = 5; //testvariable um die hex schleife zu testen
-
+	int length = 6; //testvariable um die hex schleife zu testen
 	int *tmp = malloc(length * sizeof(char));
-	for (long color = 0; color <= power(16,length)-1; ++color) {
+	for (unsigned long long color = 0; color <= power(16,length)-1; ++color) {
 		//printf("color: %5i    \n", color);
 		convertToHex(tmp, color, length);
-		printf("%5i  ", color);
+		//printf("%5i  ", color);
 		for (int i = 0; i < length; i++) {
 			printf("%c", tmp[i]);
 		}
 		printf("\n");
 	}
-	/*
-	tmp = convertToHex(22, 3);
-	for (int i = 0; i < 3; i++) {
-		printf("%c ", tmp[i]);
-	}
-	*/
 	printf("\n");
 	system("pause");
 	return 0;
