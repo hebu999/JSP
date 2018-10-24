@@ -15,6 +15,7 @@
 #include <math.h>
 #include <string.h>
 #include <Windows.h>
+#include <time.h>
 
 //Funktion zum erstellen eines 2D-Matrix-Arrays
 int ** createMatrix(int rows, int columns) {
@@ -22,7 +23,7 @@ int ** createMatrix(int rows, int columns) {
 	int **ret;
 	ret = malloc(rows * sizeof *ret);
 	if (!ret) { perror("Error: "); exit(EXIT_FAILURE); }
-	for (int i = 0; i<columns; i++) {
+	for (int i = 0; i<rows; i++) {
 		ret[i] = malloc(columns * sizeof *ret[0]);
 		if (!ret[i]) { perror("Error: "); exit(EXIT_FAILURE); }
 	}
@@ -46,9 +47,11 @@ readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int lin
 	for (int m = 0; m < *stringcount && m < linesToRead; m++) {
 		for (int n = 0; n < *stringlength; n++) {
 			fscanf(fp, "%c", &ch);
+			//printf("%c ", ch);
 			(*array)[m][n] = ch;
 		}
 		fscanf(fp, "%c", &ch);
+		//printf("\n");
 	}
 }
 
@@ -59,7 +62,6 @@ int hammingDistance(int *str1, int *str2, int stringLength)
 
 	while (i < stringLength)
 	{
-		//printf("\n");
 		//printf("%c != %c\n", str1[i], str2[i]);
 		if (str1[i] != str2[i])
 			count++;
@@ -87,14 +89,12 @@ int * convertToHex(int* ret, unsigned long long decimal, int stringlength)
 	}
 	
 	for (int i = 0; i<stringlength;i++) {
-		//printf("if (%i-%i>%i)\n", stringlength,i, j);
+		
 		if (stringlength-i>j) {
 			ret[i] = '0';
-			//printf("make null\n");
 		}
 		else {
 			ret[i] = hexadecimal[ (stringlength - 1) - i];
-			//printf("swap: %c\n", hexadecimal[j - 1 + ((stringlength - 1) - i)]);
 		}
 	}
 	
@@ -115,16 +115,31 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 	int* currentStringHex=malloc(stringLength * sizeof(char));
 	int closestDistance=-1;
 	int totalDistance = 0;
+	//unsigned long long listSize = power(16, stringLength)/anzThreads;
 
+	//TO-DO
+
+	//thread0(Hauptthread verteilt, Round Robin z.B.)
+	//ODER
+	//listSize= anzThreads;
+	//start=0;
+	//thread1(start,start+listSize-1);
+	//start+=listsize
+	//thread2(start,start+listSize-1);
+	//start+=listSize
+	//thread3(start,start+listSize-1)
+	//lläuft weiter biss alle threads aufgeteilt
 	for (unsigned long long currentStringDec = 0; currentStringDec <= power(16, stringLength) - 1; ++currentStringDec) {
 		totalDistance = 0;
 		//printf("color: %5i    \n", color);
 		convertToHex(currentStringHex, currentStringDec, stringLength);
-		//printf("%5i  ", color);
+		//printf("%5i  ", currentStringDec);
 		for (int i = 0; i < stringcount; i++)
 		{
-			printf("stringcount: %i\n", stringcount);
-			printf("stringlength: %i\n", stringLength);
+			
+			//printf("stringcount: %i\n", stringcount);
+			/*
+			//printf("stringlength: %i\n", stringLength);
 			printf("checking String: ");
 			for (int j = 0; j < stringLength; j++) {
 				printf("%c", (*strings)[i][j]);
@@ -134,21 +149,19 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 				printf("%c", currentStringHex[j]);
 			}
 			printf("\n");
-			printf("Distance: %i\n", hammingDistance((*strings)[i], currentStringHex, stringLength));
+			printf("Distance: %i\n", hammingDistance((*strings)[i], currentStringHex, stringLength));*/
 			totalDistance += hammingDistance((*strings)[i], currentStringHex, stringLength);
+			if (totalDistance >= closestDistance&&closestDistance!=-1) break;
 		}
-		printf("TotalDistance:%i\n", totalDistance);
+		//printf("TotalDistance:%i\n", totalDistance);
 		if (totalDistance < closestDistance||closestDistance==-1)
 		{	
-			// TO-DO - - - Kann man so einfach kopieren? oder mit schleife?? pointer und addressen etc.
-			//closestString = currentStringHex;
 			for (int i = 0; i < stringLength; i++) {
 				closestString[i] = currentStringHex[i];
 			}
-			closestString = currentStringHex;
 			closestDistance = totalDistance;
 		}
-		printf("\n\n");
+		//printf("\n\n");
 	}
 	printf("bestString: ");
 	for (int j = 0; j < stringLength; j++) {
@@ -169,8 +182,9 @@ int main(int argc, char** argv) {
 	int linesToRead;
 	int process_count, rank;
 	int verbosity;
-
-	int distance=384;
+	double tstart,tend;// time measurement variables
+	double time;
+	//int distance=384;
 
 	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -206,11 +220,10 @@ int main(int argc, char** argv) {
 	tag, MPI_Comm comm, MPI_Status *status);
 	*/
 
-	linesToRead = 6;
+	linesToRead = 8;
 
 	//Zeiger für Datei
-	FILE *fp;
-	
+	FILE *fp;	
 	fp = fopen("strings.txt", "r");	// Dateizugriff, Datei als read zugegriffen
 	if (fp == NULL) {	// falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
@@ -221,7 +234,13 @@ int main(int argc, char** argv) {
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
 			printf("\nStart find closest string\n");
-			findClosestString(&strings, linesToRead, stringlength);
+			tstart = clock();
+			findClosestString(&strings, stringcount, stringlength);
+			tend = clock();
+			printf("tstart:%f\n", tstart);
+			printf("tend:%f\n", tend);
+			time = (tend- tstart) / CLOCKS_PER_SEC;
+			printf("Zeit:%f \n", time);
 			printf("\nEnd find closest string\n");
 			printf("%i \n", stringcount);
 			printf("%i \n", stringlength);
