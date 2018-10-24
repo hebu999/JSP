@@ -66,36 +66,38 @@ int hammingDistance(int *str1, char str2[], int stringLength)
 	return count;
 }
 
-char convertToHex(int decimal)
+int * convertToHex(int decimal, int stringlength)
 {
-
-int remainder, quotient;
-int j = 0;
-
-char hexadecimal[100];
-
-quotient = decimal;
-
-	while (quotient != 0)
-	{
+	int remainder, quotient;
+	int j = 0;
+	char hexadecimal[16];
+	int *ret;
+	quotient = decimal;
+	while (quotient != 0){
 		remainder = quotient % 16;
-		if (remainder < 10)
-		{ 
+		if (remainder < 10)	{ 
 			hexadecimal[j++] = 48 + remainder;
 		}
-		else
-		{
+		else{
 			hexadecimal[j++] = 55 + remainder;
 		}
 		quotient = quotient / 16;
-
-		for (int i = j - 1; i >= 0; i--)
-		{
-			printf("%c\n", hexadecimal[i]);//noch nicht fertig, die einzelnen Ziffern im Array müssen in einer neue zusammengesetzt werden
-			printf("\n");
-		}	
 	}
-	return hexadecimal;
+	ret = malloc(stringlength * sizeof(char));
+	
+	for (int i = 0; i<stringlength;i++) {
+		//printf("if (%i-%i>%i)\n", stringlength,i, j);
+		if (stringlength-i>j) {
+			ret[i] = '0';
+			//printf("make null\n");
+		}
+		else {
+			ret[i] = hexadecimal[ (stringlength - 1) - i];
+			//printf("swap: %c\n", hexadecimal[j - 1 + ((stringlength - 1) - i)]);
+		}
+	}
+	
+	return ret;
 }
 
 //Funktion um korrekten String zu finden (Entwurf)
@@ -108,12 +110,10 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 	int totalDistance=0;
 	for (int i = 0; i < stringcount; i++)
 	{
-
 		printf("String: %i, Distance: %i\n", i, hammingDistance((*strings)[i], "0", stringLength));
 		totalDistance += hammingDistance((*strings)[i], "0", stringLength);
 
 		if (totalDistance < closestDistance)
-		
 		{
 			closestString = currentString;
 			closestDistance = totalDistance;
@@ -125,8 +125,8 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 }
 
 int power(int base, unsigned int exp) {
-	int i, result = 1;
-	for (i = 0; i < exp; i++)
+	int result = 1;
+	for (unsigned int i = 0; i < exp; i++)
 		result *= base;
 	return result;
 }
@@ -210,10 +210,26 @@ int main(int argc, char** argv) {
 	}
 	MPI_Finalize();
 	printf("\n\n");
-
-	for (int color = 0; color <= power(16,3)-1; ++color) {	
-		convertToHex(color);
+	int *tmp = NULL;
+	
+	
+	
+	for (int color = 0; color <= power(16,5)-1; ++color) {
+		//printf("color: %5i    \n", color);
+		tmp=convertToHex(color,5);
+		printf("%5i  ", color);
+		for (int i = 0; i < 5; i++) {
+			printf("%c", tmp[i]);
+		}
+		printf("\n");
 	}
+	/*
+	tmp = convertToHex(22, 3);
+	for (int i = 0; i < 3; i++) {
+		printf("%c ", tmp[i]);
+	}
+	*/
+	printf("\n");
 	system("pause");
 	return 0;
 }
