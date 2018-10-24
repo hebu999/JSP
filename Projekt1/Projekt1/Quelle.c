@@ -51,7 +51,7 @@ readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int lin
 }
 
 //Funktion zum berechnen der Hamming-Distanz
-int hammingDistance(int *str1, char str2[], int stringLength)
+int hammingDistance(int *str1, int *str2, int stringLength)
 {
 	int i = 0, count = 0;
 
@@ -99,35 +99,54 @@ int * convertToHex(int* ret, unsigned long long decimal, int stringlength)
 	return ret;
 }
 
-//Funktion um korrekten String zu finden (Entwurf)
-int *findClosestString( int ***strings, int stringcount, int stringLength)
-{
-	int* closestString=malloc(stringLength*sizeof(char));
-	int* currentString=malloc(stringLength * sizeof(char));
-	int closestDistance=-1;
-
-	int totalDistance=0;
-	for (int i = 0; i < stringcount; i++)
-	{
-		printf("String: %i, Distance: %i\n", i, hammingDistance((*strings)[i], "0", stringLength));
-		totalDistance += hammingDistance((*strings)[i], "0", stringLength);
-
-		if (totalDistance < closestDistance)
-		{
-			closestString = currentString;
-			closestDistance = totalDistance;
-		}	
-	}
-	printf("summierte Hamming-Distanz: \n");
-	printf("%i \n", totalDistance);
-	return closestString;
-}
-
 unsigned long long power(int base, unsigned int exp) {
 	unsigned long long  result = 1;
 	for (unsigned int i = 0; i < exp; i++)
 		result *= base;
 	return result;
+}
+
+//Funktion um korrekten String zu finden (Entwurf)
+int *findClosestString( int ***strings, int stringcount, int stringLength)
+{
+	int* closestString=malloc(stringLength*sizeof(char));
+	int* currentStringHex=malloc(stringLength * sizeof(char));
+	int closestDistance=-1;
+	int totalDistance = 0;
+
+	for (unsigned long long currentStringDec = 0; currentStringDec <= power(16, stringLength) - 1; ++currentStringDec) {
+		totalDistance = 0;
+		//printf("color: %5i    \n", color);
+		convertToHex(currentStringHex, currentStringDec, stringLength);
+		//printf("%5i  ", color);
+		for (int i = 0; i < stringcount; i++)
+		{
+			printf("checking String: ");
+			for (int j = 0; j < stringLength; j++) {
+				printf("%c", (*strings)[i][j]);
+			}
+			printf(" and ");
+			for (int j = 0; j < stringLength; j++) {
+				printf("%c", currentStringHex[j]);
+			}
+			printf("\n");
+			printf("Distance: %i\n", hammingDistance((*strings)[i], currentStringHex, stringLength));
+			totalDistance += hammingDistance((*strings)[i], currentStringHex, stringLength);
+		}
+		printf("TotalDistance:%i\n", totalDistance);
+		if (totalDistance < closestDistance||closestDistance==-1)
+		{	
+			// TO-DO - - - Kann man so einfach kopieren? oder mit schleife?? pointer und addressen etc.
+			//closestString = currentStringHex;
+			for (int i = 0; i < stringLength; i++) {
+				closestString[i] = currentStringHex[i];
+			}
+			closestString = currentStringHex;
+			closestDistance = totalDistance;
+		}
+		printf("\n\n");
+	}	
+	return closestString;
 }
 
 int main(int argc, char** argv) {
@@ -210,7 +229,7 @@ int main(int argc, char** argv) {
 	MPI_Finalize();
 	printf("\n\n");
 	
-	
+	/*
 	int length = 6; //testvariable um die hex schleife zu testen
 	int *tmp = malloc(length * sizeof(char));
 	for (unsigned long long color = 0; color <= power(16,length)-1; ++color) {
@@ -222,7 +241,7 @@ int main(int argc, char** argv) {
 		}
 		printf("\n");
 	}
-	printf("\n");
+	printf("\n");*/
 	system("pause");
 	return 0;
 }
