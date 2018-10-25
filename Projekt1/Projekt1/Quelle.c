@@ -129,6 +129,16 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 	//start+=listSize
 	//thread3(start,start+listSize-1)
 	//lläuft weiter biss alle threads aufgeteilt
+	/*
+	int MPI_Send(void *buf, int count,
+		MPI_Datatype datatype, int dest, int
+		tag, MPI_Comm comm);
+
+	int MPI_Recv(void *buf, int count,
+		MPI_Datatype datatype, int source, int
+		tag, MPI_Comm comm, MPI_Status *status);
+		*/
+
 	for (unsigned long long currentStringDec = 0; currentStringDec <= power(16, stringLength) - 1; ++currentStringDec) {
 		totalDistance = 0;
 		//printf("color: %5i    \n", color);
@@ -163,11 +173,12 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 		}
 		//printf("\n\n");
 	}
-	printf("bestString: ");
+	printf("The best String is: ");
 	for (int j = 0; j < stringLength; j++) {
 		printf("%c", closestString[j]);
 	}
-	printf(" with a Distance of %i\n", closestDistance);
+	printf("\n");
+	printf("With a Distance of %i\n", closestDistance);
 	return closestString;
 }
 
@@ -184,7 +195,6 @@ int main(int argc, char** argv) {
 	int verbosity;
 	double tstart,tend;// time measurement variables
 	double time;
-	//int distance=384;
 
 	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -210,15 +220,6 @@ int main(int argc, char** argv) {
 	if (verbosity == 2 || verbosity == 3) {
 
 	}
-	/*
-	int MPI_Send(void *buf, int count,
-	MPI_Datatype datatype, int dest, int
-	tag, MPI_Comm comm);
-
-	int MPI_Recv(void *buf, int count,
-	MPI_Datatype datatype, int source, int
-	tag, MPI_Comm comm, MPI_Status *status);
-	*/
 
 	linesToRead = 8;
 
@@ -234,13 +235,14 @@ int main(int argc, char** argv) {
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
 			printf("\nStart find closest string\n");
+			printf("\n");
 			tstart = clock();
 			findClosestString(&strings, stringcount, stringlength);
 			tend = clock();
-			printf("tstart:%f\n", tstart);
-			printf("tend:%f\n", tend);
+			//printf("tstart:%f\n", tstart);
+			//printf("tend:%f\n", tend);
 			time = (tend- tstart) / CLOCKS_PER_SEC;
-			printf("Zeit:%f \n", time);
+			printf("Time: %f \n", time);
 			printf("\nEnd find closest string\n");
 			printf("%i \n", stringcount);
 			printf("%i \n", stringlength);
@@ -256,20 +258,7 @@ int main(int argc, char** argv) {
 	}
 	MPI_Finalize();
 	printf("\n\n");
-	
-	/*
-	int length = 6; //testvariable um die hex schleife zu testen
-	int *tmp = malloc(length * sizeof(char));
-	for (unsigned long long color = 0; color <= power(16,length)-1; ++color) {
-		//printf("color: %5i    \n", color);
-		convertToHex(tmp, color, length);
-		//printf("%5i  ", color);
-		for (int i = 0; i < length; i++) {
-			printf("%c", tmp[i]);
-		}
-		printf("\n");
-	}
-	printf("\n");*/
+
 	system("pause");
 	return 0;
 }
