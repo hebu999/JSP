@@ -25,7 +25,7 @@
     <ProjectGuid>{F93BEFC3-AE73-479E-AE70-CBBD8FF5CE22}</ProjectGuid>
     <RootNamespace>Projekt1</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>JSP</ProjectName>
+    <ProjectName>CST</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

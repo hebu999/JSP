@@ -109,13 +109,20 @@ unsigned long long power(int base, unsigned int exp) {
 }
 
 //Funktion um korrekten String zu finden (Entwurf)
-int *findClosestString( int ***strings, int stringcount, int stringLength)
+int *findClosestString(int ***strings, int stringcount, int stringLength)
 {
-	int* closestString=malloc(stringLength*sizeof(char));
-	int* currentStringHex=malloc(stringLength * sizeof(char));
-	int closestDistance=-1;
+	int* closestString = malloc(stringLength * sizeof(char));
+	int* currentStringHex = malloc(stringLength * sizeof(char));
+	int closestDistance = -1;
 	int totalDistance = 0;
+	int process_count, rank, root_process;
+	MPI_Status status;
 	//unsigned long long listSize = power(16, stringLength)/anzThreads;
+
+	root_process = 0;
+
+	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	//TO-DO
 
@@ -130,9 +137,6 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 	//thread3(start,start+listSize-1)
 	//lläuft weiter biss alle threads aufgeteilt
 	/*
-	int MPI_Send(void *buf, int count,
-		MPI_Datatype datatype, int dest, int
-		tag, MPI_Comm comm);
 
 	int MPI_Recv(void *buf, int count,
 		MPI_Datatype datatype, int source, int
@@ -140,13 +144,13 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 		*/
 
 	for (unsigned long long currentStringDec = 0; currentStringDec <= power(16, stringLength) - 1; ++currentStringDec) {
+
 		totalDistance = 0;
-		//printf("color: %5i    \n", color);
 		convertToHex(currentStringHex, currentStringDec, stringLength);
-		//printf("%5i  ", currentStringDec);
+
 		for (int i = 0; i < stringcount; i++)
 		{
-			
+
 			//printf("stringcount: %i\n", stringcount);
 			/*
 			//printf("stringlength: %i\n", stringLength);
@@ -161,11 +165,23 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 			printf("\n");
 			printf("Distance: %i\n", hammingDistance((*strings)[i], currentStringHex, stringLength));*/
 			totalDistance += hammingDistance((*strings)[i], currentStringHex, stringLength);
-			if (totalDistance >= closestDistance&&closestDistance!=-1) break;
+			if (totalDistance >= closestDistance&&closestDistance != -1) break;
 		}
+
+		/*
+		for (rank = 1; rank < process_count; rank++) {
+
+			int MPI_Send(totalDistance, stringcount,
+			MPI_LONG, rank , int
+			tag, MPI_COMM_WORLD);
+
+
+
+		}
+		*/
 		//printf("TotalDistance:%i\n", totalDistance);
-		if (totalDistance < closestDistance||closestDistance==-1)
-		{	
+		if (totalDistance < closestDistance || closestDistance == -1)
+		{
 			for (int i = 0; i < stringLength; i++) {
 				closestString[i] = currentStringHex[i];
 			}
@@ -182,22 +198,21 @@ int *findClosestString( int ***strings, int stringcount, int stringLength)
 	return closestString;
 }
 
+
 int main(int argc, char** argv) {
 	
-	// MPI wird initalisiert
-	MPI_Init(&argc, &argv);
-
-	int **strings=NULL;
+	int **strings = NULL;
 	int stringcount;
 	int stringlength;
 	int linesToRead;
-	int process_count, rank;
+	
 	int verbosity;
-	double tstart,tend;// time measurement variables
+	double tstart,tend; // time measurement variables
 	double time;
 
-	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	// MPI wird initalisiert
+	MPI_Init(&argc, &argv);
+	
 
 	/*
 	if (argc < 3) {
