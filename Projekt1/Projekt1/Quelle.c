@@ -30,6 +30,12 @@ int ** createMatrix(int rows, int columns) {
 	return ret;
 }
 
+unsigned long long power(int base, unsigned int exp) {
+	unsigned long long  result = 1;
+	for (unsigned int i = 0; i < exp; i++)
+		result *= base;
+	return result;
+}
 
 //Strings werden aus der Textdatei eingelesen
 readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int linesToRead) {
@@ -101,50 +107,141 @@ int * convertToHex(int* ret, unsigned long long decimal, int stringlength)
 	return ret;
 }
 
-unsigned long long power(int base, unsigned int exp) {
-	unsigned long long  result = 1;
-	for (unsigned int i = 0; i < exp; i++)
-		result *= base;
-	return result;
-}
-
 //Funktion um korrekten String zu finden (Entwurf)
 int *findClosestString(int ***strings, int stringcount, int stringLength)
 {
-	int* closestString = malloc(stringLength * sizeof(char));
+	int closestStringDec;
 	int* currentStringHex = malloc(stringLength * sizeof(char));
 	int closestDistance = -1;
 	int totalDistance = 0;
 	int process_count, rank, root_process;
+	long long int taskCounter=0;
 	MPI_Status status;
-	//unsigned long long listSize = power(16, stringLength)/anzThreads;
-
+	long long int totalListSize = power(16, stringLength) - 1;
+	int recProcess = 0;
 	root_process = 0;
 
 	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	//TO-DO
+	char mylogbuffer[100];
 
-	//thread0(Hauptthread verteilt, Round Robin z.B.)
-	//ODER
-	//listSize= anzThreads;
-	//start=0;
-	//thread1(start,start+listSize-1);
-	//start+=listsize
-	//thread2(start,start+listSize-1);
-	//start+=listSize
-	//thread3(start,start+listSize-1)
-	//lläuft weiter biss alle threads aufgeteilt
-	/*
+	if (rank == root_process)
+	{
+		printf("Hier ist Prozess %i\n", rank);
 
-	int MPI_Recv(void *buf, int count,
-		MPI_Datatype datatype, int source, int
-		tag, MPI_Comm comm, MPI_Status *status);
-		*/
+		for(int i = 1; i < process_count; i++) //läuft für alle unterprozesse durch 1-procCount
+		 {
+			MPI_Send(&taskCounter, 1,
+				MPI_LONG, i, 0, MPI_COMM_WORLD);
+			MPI_Send(&closestDistance, 1,
+				MPI_LONG, i, 0, MPI_COMM_WORLD);
 
-	for (unsigned long long currentStringDec = 0; currentStringDec <= power(16, stringLength) - 1; ++currentStringDec) {
+			taskCounter++;
+		}
+		int ret = 0;
+		int closestStringDecTMP = 0;
+		int closestDistanceTMP = 0;
+		for (taskCounter; taskCounter < totalListSize; taskCounter++) {
+			MPI_Recv(&ret, 1,
+				MPI_LONG, MPI_ANY_SOURCE, MPI_ANY_TAG,
+				MPI_COMM_WORLD, &status);
+			if (ret) { //Falls ret 1 ist, ist ein besserer String gefunden worden
 
+				MPI_Recv(&closestDistanceTMP, 1,
+					MPI_LONG, status.MPI_SOURCE, MPI_ANY_TAG,
+					MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+
+				MPI_Recv(&closestStringDecTMP, 1,
+					MPI_LONG, status.MPI_SOURCE, MPI_ANY_TAG,
+					MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+				if (closestDistanceTMP < closestDistance) {
+					closestDistance = closestDistanceTMP;
+					closestStringDec = closestStringDecTMP;
+				}
+			}
+			MPI_Send(&taskCounter, 1,
+				MPI_LONG, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+			MPI_Send(&closestDistance, 1,
+				MPI_LONG, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+
+		}
+
+		for (int i = 1; i < process_count; i++) {
+			MPI_Recv(&ret, 1,
+				MPI_LONG, MPI_ANY_SOURCE, MPI_ANY_TAG,
+				MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+			if (ret) { //Falls ret 1 ist, ist ein besserer String gefunden worden
+
+				MPI_Recv(&closestDistanceTMP, 1,
+					MPI_LONG, status.MPI_SOURCE, MPI_ANY_TAG,
+					MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+
+				MPI_Recv(&closestStringDecTMP, 1,
+					MPI_LONG, status.MPI_SOURCE, MPI_ANY_TAG,
+					MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+				if (closestDistanceTMP < closestDistance) {
+					closestDistance = closestDistanceTMP;
+					closestStringDec = closestStringDecTMP;
+				}
+			}
+			//schicke abbruchbedingung an die unterthreads
+			MPI_Send("-1", 1,
+				MPI_LONG, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+		}
+		
+	}
+
+	else
+
+	{
+		printf("Rank %i startet\n", rank);
+		int currentStringDec = 0;
+		while (TRUE) {//Durchlaufen bis abbruch
+			MPI_Recv(&currentStringDec, 1,
+				MPI_LONG, 0, MPI_ANY_TAG,
+				MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+			if (currentStringDec == -1) break; //Abbruch wenn mainthread -1 als terminierung schickt
+
+			MPI_Recv(&closestDistance, 1,
+				MPI_LONG, 0, MPI_ANY_TAG,
+				MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+
+			totalDistance = 0;
+			convertToHex(currentStringHex, currentStringDec, stringLength);
+
+			for (int i = 0; i < stringcount; i++)
+			{
+				totalDistance += hammingDistance((*strings)[i], currentStringHex, stringLength);
+				if (totalDistance >= closestDistance&&closestDistance != -1) break;
+			}
+
+			if (totalDistance < closestDistance || closestDistance == -1)
+			{
+				//schick ne 1 damit main thread bescheid weiß
+				MPI_Send("-1", 1,
+					MPI_LONG, 0, 0, MPI_COMM_WORLD);				
+				//send closestDistance
+				MPI_Send(&totalDistance, 1,
+					MPI_LONG, 0, 0, MPI_COMM_WORLD);
+				//send closestStringInDec
+				MPI_Send(&currentStringDec, 1,
+					MPI_LONG, 0, 0, MPI_COMM_WORLD);
+			}
+			else {
+				//schick ne null
+				MPI_Send("-1", 1,
+					MPI_LONG, 0, 0, MPI_COMM_WORLD);
+			}
+
+		}
+		printf("Rank %i endet\n", rank);
+
+	}
+	
+		/*
+		//bekomme neue aufgabe
+		//bekomme neue closest distance
 		totalDistance = 0;
 		convertToHex(currentStringHex, currentStringDec, stringLength);
 
@@ -152,7 +249,7 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 		{
 
 			//printf("stringcount: %i\n", stringcount);
-			/*
+			
 			//printf("stringlength: %i\n", stringLength);
 			printf("checking String: ");
 			for (int j = 0; j < stringLength; j++) {
@@ -163,39 +260,26 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 				printf("%c", currentStringHex[j]);
 			}
 			printf("\n");
-			printf("Distance: %i\n", hammingDistance((*strings)[i], currentStringHex, stringLength));*/
+			printf("Distance: %i\n", hammingDistance((*strings)[i], currentStringHex, stringLength));
 			totalDistance += hammingDistance((*strings)[i], currentStringHex, stringLength);
 			if (totalDistance >= closestDistance&&closestDistance != -1) break;
 		}
 
-		/*
-		for (rank = 1; rank < process_count; rank++) {
-
-			int MPI_Send(totalDistance, stringcount,
-			MPI_LONG, rank , int
-			tag, MPI_COMM_WORLD);
-
-
-
-		}
-		*/
+		
 		//printf("TotalDistance:%i\n", totalDistance);
 		if (totalDistance < closestDistance || closestDistance == -1)
 		{
-			for (int i = 0; i < stringLength; i++) {
-				closestString[i] = currentStringHex[i];
-			}
-			closestDistance = totalDistance;
+			//schick ne 1 damit main thread bescheid weiß
+			//send closestDistance
+			//send closestStringInDec
 		}
-		//printf("\n\n");
-	}
-	printf("The best String is: ");
-	for (int j = 0; j < stringLength; j++) {
-		printf("%c", closestString[j]);
-	}
-	printf("\n");
-	printf("With a Distance of %i\n", closestDistance);
-	return closestString;
+		else {
+			//schick ne null 
+		}
+		//bekommen neue aufgabe
+		*/
+	MPI_Finalize();
+	return closestStringDec;
 }
 
 
@@ -209,33 +293,21 @@ int main(int argc, char** argv) {
 	int verbosity;
 	double tstart,tend; // time measurement variables
 	double time;
-
-	// MPI wird initalisiert
-	MPI_Init(&argc, &argv);
 	
-
-	/*
+	
 	if (argc < 3) {
-		printf("Nicht ausreichend Parameter bei Programmaufruf(Anzahl zu lesender Strings, Verbosity), das Programm terminiert sich jetzt selbst\n");
+		printf("Nicht ausreichend Parameter bei Programmaufruf(Anzahl zu lesender Strings, Verbosity), das Programm terminiert sich jetzt selbst.\n");
 		system("pause");
 		exit(1);
 	}
-	*/
 	
+
 	if (argv[1]) linesToRead = (int)*argv[1];
 	
 	if (argv[2]) verbosity = (int)*argv[2];
 
-	// funktionsblock um die Strings darzustellen
-	if (verbosity == 1 || verbosity == 3) {
-
-	}
-
-	// funktionsblock um die Zeit darzustellen
-	if (verbosity == 2 || verbosity == 3) {
-
-	}
-
+	
+	MPI_Init(&argc, &argv);
 	linesToRead = 8;
 
 	//Zeiger für Datei
@@ -271,9 +343,28 @@ int main(int argc, char** argv) {
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
-	MPI_Finalize();
+	
 	printf("\n\n");
+	// funktionsblock um die Strings darzustellen
+	if (verbosity == 1 || verbosity == 3) {
 
+		printf("Erfolgreiches Programm (^_^)");
+
+		/*
+		printf("The best String is: ");
+		for (int j = 0; j < stringLength; j++) {
+			printf("%c", closestStringDec[j]);
+		}
+		printf("\n");
+		printf("With a Distance of %i\n", closestDistance);
+		*/
+
+	}
+
+	// funktionsblock um die Zeit darzustellen
+	if (verbosity == 2 || verbosity == 3) {
+
+	}
 	system("pause");
 	return 0;
 }
