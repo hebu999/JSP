@@ -41,23 +41,19 @@ unsigned long long power(int base, unsigned int exp) {
 readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int linesToRead) {
 	char ch = 0;
 	fscanf(fp, "%i", stringcount);
-	printf("stringcount: %i\n", *stringcount);
 	fscanf(fp, "%i", stringlength);
-	printf("stringlength: %i\n", *stringlength);
 	fscanf(fp, "%c", &ch);
+	if (linesToRead < *stringcount) *stringcount = linesToRead;
 	*array = createMatrix(*stringcount, *stringlength);
 
 	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
-	printf("Reading Strings\n");
 
-	for (int m = 0; m < *stringcount && m < linesToRead; m++) {
+	for (int m = 0; m < *stringcount; m++) {
 		for (int n = 0; n < *stringlength; n++) {
 			fscanf(fp, "%c", &ch);
-			//printf("%c ", ch);
 			(*array)[m][n] = ch;
 		}
 		fscanf(fp, "%c", &ch);
-		//printf("\n");
 	}
 }
 
@@ -108,7 +104,7 @@ int * convertToHex(int* ret, unsigned long long decimal, int stringlength)
 }
 
 //Funktion um korrekten String zu finden (Entwurf)
-int *findClosestString(int ***strings, int stringcount, int stringLength)
+int findClosestString(int ***strings, int stringcount, int stringLength)
 {
 	int closestStringDec;
 	int* currentStringHex = malloc(stringLength * sizeof(char));
@@ -125,6 +121,7 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_File_open(MPI_COMM_WORLD, "log.txt", MPI_MODE_WRONLY,
+	//MPI_File_open(MPI_COMM_WORLD, "log.txt", MPI_MODE_WRONLY | MPI_MODE_CREATE,
 		MPI_INFO_NULL, &logfile);
 
 	char mylogbuffer[1024];
@@ -160,7 +157,7 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 				MPI_Recv(&closestStringDecTMP, 1,
 					MPI_LONG, status.MPI_SOURCE, MPI_ANY_TAG,
 					MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-				if (closestDistanceTMP < closestDistance) {
+				if (totalDistance < closestDistance || closestDistance == -1) {
 					closestDistance = closestDistanceTMP;
 					closestStringDec = closestStringDecTMP;
 				}
@@ -191,7 +188,7 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 				MPI_Recv(&closestStringDecTMP, 1,
 					MPI_LONG, i, MPI_ANY_TAG,
 					MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-				if (closestDistanceTMP < closestDistance) {
+				if (totalDistance < closestDistance || closestDistance == -1) {
 					closestDistance = closestDistanceTMP;
 					closestStringDec = closestStringDecTMP;
 				}
@@ -208,7 +205,6 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 		
 		sprintf(mylogbuffer, "Prozess %i endet \n", rank);
 		MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
-		MPI_File_close(&logfile);
 
 		
 	}
@@ -248,13 +244,16 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 				if (totalDistance >= closestDistance && closestDistance != -1) break;
 			}
 
+			sprintf(line, "#%i StringDec %i hat ne distance von %i \n", rank,currentStringDec,totalDistance);
+			MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 			if (totalDistance < closestDistance || closestDistance == -1)
 			{
 
 				sprintf(line, "#%i sendet sendet besseren score \n", rank);
 				MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 				//schick ne 1 damit main thread bescheid weiß
-				MPI_Send("1", 1,
+				int one = 1;
+				MPI_Send(&one, 1,
 					MPI_LONG, 0, 0, MPI_COMM_WORLD);				
 				//send closestDistance
 				MPI_Send(&totalDistance, 1,
@@ -268,22 +267,25 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 				sprintf(line, "#%i sendet kein Ergebniss also eine null\n", rank);
 				MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 				//schick ne null
-				MPI_Send("0", 1,
+				int zero = 0;
+				MPI_Send(&zero, 1,
 					MPI_LONG, 0, 0, MPI_COMM_WORLD);
 			}
 		}
 		sprintf(mylogbuffer, "Prozess %i endet \n", rank);
 		MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
-		MPI_File_close(&logfile);
+		
 	}
 
+	MPI_File_close(&logfile);
 	MPI_Finalize();
 
 	if (rank)
 	{
 		exit(0);
 	}
-
+	printf("closest String in Decimal is %i\n", closestStringDec);
+	printf("closest Distance in Decimal is %i\n", closestDistance);	
 	return closestStringDec;
 		/*
 		//bekomme neue aufgabe
@@ -330,10 +332,11 @@ int *findClosestString(int ***strings, int stringcount, int stringLength)
 int main(int argc, char** argv) {
 	
 	int **strings = NULL;
+	int* resultHex;
 	int stringcount;
-	int stringlength;
+	int stringLength;
 	int linesToRead;
-	
+	int result;
 	int verbosity;
 	double tstart,tend; // time measurement variables
 	double time;
@@ -347,12 +350,12 @@ int main(int argc, char** argv) {
 	
 
 	if (argv[1]) linesToRead = (int)*argv[1];
+	printf("ProgrammParameter - linesToRead: %i", linesToRead);
 	
 	if (argv[2]) verbosity = (int)*argv[2];
 
 	
 	MPI_Init(&argc, &argv);
-	linesToRead = 8;
 
 	//Zeiger für Datei
 	FILE *fp;	
@@ -361,14 +364,15 @@ int main(int argc, char** argv) {
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
 	else {	// Datei konnte geoeffnet werden
-		printf("strings.txt ist lesbar\n");
-		readStrings(fp, &strings, &stringcount, &stringlength, linesToRead);
+		//printf("strings.txt ist lesbar\n");
+
+		readStrings(fp, &strings, &stringcount, &stringLength, linesToRead);
+		
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
-			printf("\nStart find closest string\n");
-			printf("\n");
+			//printf("\nStart find closest string\n");	
 			tstart = clock();
-			findClosestString(&strings, stringcount, stringlength);
+			result = findClosestString(&strings, stringcount, stringLength);
 			tend = clock();
 			//printf("tstart:%f\n", tstart);
 			//printf("tend:%f\n", tend);
@@ -376,19 +380,29 @@ int main(int argc, char** argv) {
 			printf("Time: %f \n", time);
 			printf("\nEnd find closest string\n");
 			printf("%i \n", stringcount);
-			printf("%i \n", stringlength);
+			printf("%i \n", stringLength);
 			for (int i = 0; i < stringcount; i++) {
-				for (int j = 0; j < stringlength; j++) {
-					printf("%c", strings[i][j]);
+				for (int j = 0; j < stringLength; j++) {
+					printf("%c-", strings[i][j]);
 				}
 				printf("\n");
-
+				
+				
 			}
+			printf("ClosestStringDec: %i\n", result);
+			resultHex = malloc(stringLength * sizeof(char));
+
+			convertToHex(resultHex, result, stringLength);
+			printf("ClosestStringHex:");
+			for (int i = 0; i < stringLength; i++) {
+				printf("%c", resultHex[i]);
+			}
+			printf("\n");
+			
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
 	
-	printf("\n\n");
 	// funktionsblock um die Strings darzustellen
 	if (verbosity == 1 || verbosity == 3) {
 
