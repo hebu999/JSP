@@ -19,7 +19,7 @@
 
 //Funktion zum erstellen eines 2D-Matrix-Arrays
 int ** createMatrix(int rows, int columns) {
-	printf("Create Matrix with %d rows and %d columns\n", rows, columns);
+	//printf("Create Matrix with %d rows and %d columns\n", rows, columns);
 	int **ret;
 	ret = malloc(rows * sizeof *ret);
 	if (!ret) { perror("Error: "); exit(EXIT_FAILURE); }
@@ -226,7 +226,7 @@ int findClosestString(int ***strings, int stringcount, int stringLength)
 
 			if (currentStringDec == -1) 
 			{ 
-				sprintf(mylogbuffer, "#Prozess %i bekommt terminierung ~~~ \n", rank);
+				sprintf(mylogbuffer, "#Prozess %i bekommt terminierung \n", rank);
 				MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
 				break;
 			}
@@ -244,8 +244,16 @@ int findClosestString(int ***strings, int stringcount, int stringLength)
 				if (totalDistance >= closestDistance && closestDistance != -1) break;
 			}
 
-			sprintf(line, "#%i StringDec %i hat ne distance von %i \n", rank,currentStringDec,totalDistance);
-			MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
+			sprintf(mylogbuffer, "#%i StringDec %i hat ne distance von %i ~~~", rank,currentStringDec,totalDistance);
+
+			for (int i = 0; i < stringLength; i++) {
+				sprintf(line,"%c", currentStringHex[i]);
+				strcat(mylogbuffer, line);
+			}
+			sprintf(line,"\n");
+			strcat(mylogbuffer, line);
+			MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
+
 			if (totalDistance < closestDistance || closestDistance == -1)
 			{
 
@@ -347,12 +355,10 @@ int main(int argc, char** argv) {
 		system("pause");
 		exit(1);
 	}
-	
-
-	if (argv[1]) linesToRead = (int)*argv[1];
-	printf("ProgrammParameter - linesToRead: %i", linesToRead);
-	
-	if (argv[2]) verbosity = (int)*argv[2];
+	else {
+		linesToRead = atoi(argv[1]);
+		verbosity = atoi(argv[2]);
+	}
 
 	
 	MPI_Init(&argc, &argv);
@@ -386,8 +392,6 @@ int main(int argc, char** argv) {
 					printf("%c-", strings[i][j]);
 				}
 				printf("\n");
-				
-				
 			}
 			printf("ClosestStringDec: %i\n", result);
 			resultHex = malloc(stringLength * sizeof(char));
@@ -402,9 +406,8 @@ int main(int argc, char** argv) {
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
-	
 	// funktionsblock um die Strings darzustellen
-	if (verbosity == 1 || verbosity == 3) {
+	if (verbosity == 1 && verbosity == 3) {
 
 		printf("Erfolgreiches Programm (^_^)");
 
