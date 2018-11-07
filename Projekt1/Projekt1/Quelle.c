@@ -18,9 +18,9 @@
 #include <time.h>
 
 //Funktion zum erstellen eines 2D-Matrix-Arrays
-int ** createMatrix(int rows, int columns) {
+char ** createMatrix(int rows, int columns) {
 	//printf("Create Matrix with %d rows and %d columns\n", rows, columns);
-	int **ret;
+	char **ret;
 	ret = malloc(rows * sizeof *ret);
 	if (!ret) { perror("Error: "); exit(EXIT_FAILURE); }
 	for (int i = 0; i<rows; i++) {
@@ -38,33 +38,24 @@ unsigned long long power(int base, unsigned int exp) {
 }
 
 //Strings werden aus der Textdatei eingelesen
-readStrings(FILE* fp, int ***array, int *stringcount, int *stringlength, int linesToRead) {
+readStrings(FILE* fp, char ***array, int *stringcount, int *stringlength, int linesToRead) {
 	char ch = 0;
 	fscanf(fp, "%i", stringcount);
 	fscanf(fp, "%i", stringlength);
-	fscanf(fp, "%c", &ch);
 	if (linesToRead < *stringcount) *stringcount = linesToRead;
-	*array = createMatrix(*stringcount, *stringlength);
-
+	*array = createMatrix(*stringcount, *stringlength + 1);
 	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
-
 	for (int m = 0; m < *stringcount; m++) {
-		for (int n = 0; n < *stringlength; n++) {
-			fscanf(fp, "%c", &ch);
-			(*array)[m][n] = ch;
-		}
-		fscanf(fp, "%c", &ch);
+		fscanf(fp, "%s", (*array)[m]);
 	}
 }
 
 //Funktion zum berechnen der Hamming-Distanz
-int hammingDistance(int *str1, int *str2, int stringLength)
+char hammingDistance(char *str1, char *str2, int stringLength)
 {
 	int i = 0, count = 0;
-
 	while (i < stringLength)
 	{
-		//printf("%c != %c\n", str1[i], str2[i]);
 		if (str1[i] != str2[i])
 			count++;
 		i++;
@@ -72,7 +63,7 @@ int hammingDistance(int *str1, int *str2, int stringLength)
 	return count;
 }
 
-int * convertToHex(int* ret, unsigned long long decimal, int stringlength)
+char * convertToHex(char* ret, unsigned long long decimal, int stringlength)
 {
 	int remainder;
 	unsigned long long quotient;
@@ -104,10 +95,10 @@ int * convertToHex(int* ret, unsigned long long decimal, int stringlength)
 }
 
 //Funktion um korrekten String zu finden (Entwurf)
-int findClosestString(int ***strings, int stringcount, int stringLength)
+int findClosestString(char ***strings, int stringcount, int stringLength)
 {
 	int closestStringDec;
-	int* currentStringHex = malloc(stringLength * sizeof(char));
+	char* currentStringHex = malloc(stringLength * sizeof(currentStringHex));
 	int closestDistance = -1;
 	int totalDistance = 0;
 	int process_count, rank, root_process;
@@ -271,7 +262,6 @@ int findClosestString(int ***strings, int stringcount, int stringLength)
 					MPI_LONG, 0, 0, MPI_COMM_WORLD);
 			}
 			else {
-
 				sprintf(line, "#%i sendet kein Ergebniss also eine null\n", rank);
 				MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 				//schick ne null
@@ -288,59 +278,18 @@ int findClosestString(int ***strings, int stringcount, int stringLength)
 	MPI_File_close(&logfile);
 	MPI_Finalize();
 
-	if (rank)
-	{
-		exit(0);
-	}
+	if (rank) exit(0);
+
 	printf("closest String in Decimal is %i\n", closestStringDec);
 	printf("closest Distance in Decimal is %i\n", closestDistance);	
 	return closestStringDec;
-		/*
-		//bekomme neue aufgabe
-		//bekomme neue closest distance
-		totalDistance = 0;
-		convertToHex(currentStringHex, currentStringDec, stringLength);
-
-		for (int i = 0; i < stringcount; i++)
-		{
-
-			//printf("stringcount: %i\n", stringcount);
-			
-			//printf("stringlength: %i\n", stringLength);
-			printf("checking String: ");
-			for (int j = 0; j < stringLength; j++) {
-				printf("%c", (*strings)[i][j]);
-			}
-			printf(" and ");
-			for (int j = 0; j < stringLength; j++) {
-				printf("%c", currentStringHex[j]);
-			}
-			printf("\n");
-			printf("Distance: %i\n", hammingDistance((*strings)[i], currentStringHex, stringLength));
-			totalDistance += hammingDistance((*strings)[i], currentStringHex, stringLength);
-			if (totalDistance >= closestDistance&&closestDistance != -1) break;
-		}
-
-		
-		//printf("TotalDistance:%i\n", totalDistance);
-		if (totalDistance < closestDistance || closestDistance == -1)
-		{
-			//schick ne 1 damit main thread bescheid weiß
-			//send closestDistance
-			//send closestStringInDec
-		}
-		else {
-			//schick ne null 
-		}
-		//bekommen neue aufgabe
-		*/	
 }
 
 
 int main(int argc, char** argv) {
 	
-	int **strings = NULL;
-	int* resultHex;
+	char **strings = NULL;
+	char* resultHex;
 	int stringcount;
 	int stringLength;
 	int linesToRead;
@@ -350,10 +299,16 @@ int main(int argc, char** argv) {
 	double time;
 	
 	
+	/*
 	if (argc < 3) {
 		printf("Nicht ausreichend Parameter bei Programmaufruf(Anzahl zu lesender Strings, Verbosity), das Programm terminiert sich jetzt selbst.\n");
 		system("pause");
 		exit(1);
+	}
+	*/
+	if (argc < 3) {
+		linesToRead = 99999;
+		verbosity = 3;
 	}
 	else {
 		linesToRead = atoi(argv[1]);
@@ -371,7 +326,6 @@ int main(int argc, char** argv) {
 	}
 	else {	// Datei konnte geoeffnet werden
 		//printf("strings.txt ist lesbar\n");
-
 		readStrings(fp, &strings, &stringcount, &stringLength, linesToRead);
 		
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
@@ -388,10 +342,7 @@ int main(int argc, char** argv) {
 			printf("%i \n", stringcount);
 			printf("%i \n", stringLength);
 			for (int i = 0; i < stringcount; i++) {
-				for (int j = 0; j < stringLength; j++) {
-					printf("%c-", strings[i][j]);
-				}
-				printf("\n");
+				printf("%s\n", strings[i]);
 			}
 			printf("ClosestStringDec: %i\n", result);
 			resultHex = malloc(stringLength * sizeof(char));
@@ -402,7 +353,6 @@ int main(int argc, char** argv) {
 				printf("%c", resultHex[i]);
 			}
 			printf("\n");
-			
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
@@ -421,7 +371,6 @@ int main(int argc, char** argv) {
 		*/
 
 	}
-
 	// funktionsblock um die Zeit darzustellen
 	if (verbosity == 2 || verbosity == 3) {
 
