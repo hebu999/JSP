@@ -36,10 +36,17 @@ unsigned long long power(int base, unsigned int exp) {
 		result *= base;
 	return result;
 }
-
+stringToUpper(char *string) {
+	int i;
+	size_t len = strlen(string);
+	for (i = 0; i<len; i++) {
+		if (string[i] >= 'a' && string[i] <= 'z') {
+			string[i] -= 32;
+		}
+	}
+}	
 //Strings werden aus der Textdatei eingelesen
 readStrings(FILE* fp, char ***array, int *stringcount, int *stringlength, int linesToRead) {
-	char ch = 0;
 	fscanf(fp, "%i", stringcount);
 	fscanf(fp, "%i", stringlength);
 	if (linesToRead < *stringcount) *stringcount = linesToRead;
@@ -47,6 +54,7 @@ readStrings(FILE* fp, char ***array, int *stringcount, int *stringlength, int li
 	if (!*array) { perror("Error: "); exit(EXIT_FAILURE); }
 	for (int m = 0; m < *stringcount; m++) {
 		fscanf(fp, "%s", (*array)[m]);
+		stringToUpper((*array)[m]);
 	}
 }
 
@@ -82,7 +90,6 @@ char * convertToHex(char* ret, unsigned long long decimal, int stringlength)
 	}
 	
 	for (int i = 0; i<stringlength;i++) {
-		
 		if (stringlength-i>j) {
 			ret[i] = '0';
 		}
@@ -90,7 +97,6 @@ char * convertToHex(char* ret, unsigned long long decimal, int stringlength)
 			ret[i] = hexadecimal[ (stringlength - 1) - i];
 		}
 	}
-	
 	return ret;
 }
 
@@ -115,13 +121,13 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 	//MPI_File_open(MPI_COMM_WORLD, "log.txt", MPI_MODE_WRONLY | MPI_MODE_CREATE,
 		MPI_INFO_NULL, &logfile);
 
-	char mylogbuffer[1024];
-	char line[100];
+	//char mylogbuffer[1024];
+	//char line[100];
 
 	if (rank == root_process)
 	{
-		sprintf(mylogbuffer, "Hier ist Prozess %i \n", rank);
-		MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
+		//sprintf(mylogbuffer, "Hier ist Prozess %i \n", rank);
+		//MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
 		
 		for (int i = 1; i < process_count; i++) //läuft für alle unterprozesse durch 1-procCount
 		 {
@@ -162,14 +168,14 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 
 		for (int i = 1; i < process_count; i++) {
 
-			sprintf(line, "#0 bekommt letzten ergebnisse\n");
-			MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
+			//sprintf(line, "#0 bekommt letzten ergebnisse\n");
+			//MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 			MPI_Recv(&ret, 1,
 				MPI_LONG, i, MPI_ANY_TAG,
 				MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
 
-			sprintf(line, "#0 letztes ergebniss von %i ~~~ \n", status.MPI_SOURCE);
-			MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
+			//sprintf(line, "#0 letztes ergebniss von %i ~~~ \n", status.MPI_SOURCE);
+			//MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 			if (ret) { //Falls ret 1 ist, ist ein besserer String gefunden worden
 
 				MPI_Recv(&closestDistanceTMP, 1,
@@ -189,22 +195,20 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 			MPI_Send(&abortVar, 1,
 				MPI_LONG_LONG_INT, i, 0, MPI_COMM_WORLD);
 
-			sprintf(line, "#Prozess 0 sendet terminierung zu %i ~~~ \n", i);
-			MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
+			//sprintf(line, "#Prozess 0 sendet terminierung zu %i ~~~ \n", i);
+			//MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 
 		}
 		
-		sprintf(mylogbuffer, "Prozess %i endet \n", rank);
-		MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
+		//sprintf(mylogbuffer, "Prozess %i endet \n", rank);
+		//MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
 
 		
 	}
-
 	else
-
 	{
-		sprintf(mylogbuffer, "Hier ist Prozess %i \n", rank);
-		MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
+		//sprintf(mylogbuffer, "Hier ist Prozess %i \n", rank);
+		//MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
 
 		long currentStringDec = 0;
 		while (TRUE) {//Durchlaufen bis abbruch
@@ -212,13 +216,13 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 				MPI_LONG_LONG_INT, 0, MPI_ANY_TAG,
 				MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
 
-			sprintf(mylogbuffer, "Prozess %i bearbeitet nun %i aus\n", rank,currentStringDec);
-			MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
+			//sprintf(mylogbuffer, "Prozess %i bearbeitet nun %i aus\n", rank,currentStringDec);
+			//MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
 
 			if (currentStringDec == -1) 
 			{ 
-				sprintf(mylogbuffer, "#Prozess %i bekommt terminierung \n", rank);
-				MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
+				//sprintf(mylogbuffer, "#Prozess %i bekommt terminierung \n", rank);
+				//MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
 				break;
 			}
 			
@@ -235,21 +239,21 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 				if (totalDistance >= closestDistance && closestDistance != -1) break;
 			}
 
-			sprintf(mylogbuffer, "#%i StringDec %i hat ne distance von %i ~~~", rank,currentStringDec,totalDistance);
+			//sprintf(mylogbuffer, "#%i StringDec %i hat ne distance von %i ~~~", rank,currentStringDec,totalDistance);
 
 			for (int i = 0; i < stringLength; i++) {
-				sprintf(line,"%c", currentStringHex[i]);
-				strcat(mylogbuffer, line);
+				//sprintf(line,"%c", currentStringHex[i]);
+				//strcat(mylogbuffer, line);
 			}
-			sprintf(line,"\n");
-			strcat(mylogbuffer, line);
-			MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
+			//sprintf(line,"\n");
+			//strcat(mylogbuffer, line);
+			//MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
 
 			if (totalDistance < closestDistance || closestDistance == -1)
 			{
 
-				sprintf(line, "#%i sendet sendet besseren score \n", rank);
-				MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
+				//sprintf(line, "#%i sendet sendet besseren score \n", rank);
+				//MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 				//schick ne 1 damit main thread bescheid weiß
 				int one = 1;
 				MPI_Send(&one, 1,
@@ -262,20 +266,20 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 					MPI_LONG, 0, 0, MPI_COMM_WORLD);
 			}
 			else {
-				sprintf(line, "#%i sendet kein Ergebniss also eine null\n", rank);
-				MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
+				//sprintf(line, "#%i sendet kein Ergebniss also eine null\n", rank);
+				//MPI_File_write_shared(logfile, line, strlen(line), MPI_CHAR, MPI_STATUS_IGNORE);
 				//schick ne null
 				int zero = 0;
 				MPI_Send(&zero, 1,
 					MPI_LONG, 0, 0, MPI_COMM_WORLD);
 			}
 		}
-		sprintf(mylogbuffer, "Prozess %i endet \n", rank);
-		MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
+		//sprintf(mylogbuffer, "Prozess %i endet \n", rank);
+		//MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
 		
 	}
 
-	MPI_File_close(&logfile);
+	//MPI_File_close(&logfile);
 	MPI_Finalize();
 
 	if (rank) exit(0);
