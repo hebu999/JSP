@@ -328,7 +328,7 @@ int main(int argc, char** argv) {
 	else {	// Datei konnte geoeffnet werden
 		//printf("strings.txt ist lesbar\n");
 		readStrings(fp, &strings, &stringcount, &stringLength, linesToRead);
-		
+		fclose(fp);	//Dateizugriff wieder freigeben
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -337,19 +337,14 @@ int main(int argc, char** argv) {
 			tend = clock();
 			time = (tend- tstart) / CLOCKS_PER_SEC;
 			printf("Time: %f \n", time);
-			printf("\nEnd find closest string\n");
 			printf("%i \n", stringcount);
 			printf("%i \n", stringLength);
-			for (int i = 0; i < stringcount; i++) {
-				printf("%s\n", strings[i]);
-			}
 			printf("ClosestStringDec: %i\n", result);
 			resultHex = malloc(stringLength * sizeof(char));
-
 			convertToHex(resultHex, result, stringLength);
 			printf("ClosestStringHex: %s",resultHex);
 		}
-		fclose(fp);	//Dateizugriff wieder freigeben
+		
 	}
 	// funktionsblock um die Strings darzustellen
 	if (verbosity == 1 && verbosity == 3) {
