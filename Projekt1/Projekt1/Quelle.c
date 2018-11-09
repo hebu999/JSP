@@ -347,11 +347,7 @@ int main(int argc, char** argv) {
 			resultHex = malloc(stringLength * sizeof(char));
 
 			convertToHex(resultHex, result, stringLength);
-			printf("ClosestStringHex:");
-			for (int i = 0; i < stringLength; i++) {
-				printf("%c", resultHex[i]);
-			}
-			printf("\n");
+			printf("ClosestStringHex: %s",resultHex);
 		}
 		fclose(fp);	//Dateizugriff wieder freigeben
 	}
