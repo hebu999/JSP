@@ -139,7 +139,7 @@ unsigned long long int findClosestString(char ***strings, int stringcount, int s
 
 		int ret = 0;
 		unsigned long long int closestStringDecTMP = 0;
-		int closestDistanceTMP = 0;
+		unsigned long long int closestDistanceTMP = 0;
 		for (taskCounter; taskCounter < totalListSize-5; taskCounter++) {
 			MPI_Recv(&ret, 1,
 				MPI_LONG, MPI_ANY_SOURCE, MPI_ANY_TAG,
@@ -154,7 +154,7 @@ unsigned long long int findClosestString(char ***strings, int stringcount, int s
 				MPI_Recv(&closestStringDecTMP, 1,
 					MPI_LONG, status.MPI_SOURCE, MPI_ANY_TAG,
 					MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-				if (totalDistance < closestDistance || closestDistance == -1) {
+				if (closestDistanceTMP < closestDistance || closestDistance == -1) {				
 					closestDistance = closestDistanceTMP;
 					closestStringDec = closestStringDecTMP;
 				}
@@ -185,7 +185,7 @@ unsigned long long int findClosestString(char ***strings, int stringcount, int s
 				MPI_Recv(&closestStringDecTMP, 1,
 					MPI_LONG, i, MPI_ANY_TAG,
 					MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-				if (totalDistance < closestDistance || closestDistance == -1) {
+				if (closestDistanceTMP < closestDistance || closestDistance == -1) {				
 					closestDistance = closestDistanceTMP;
 					closestStringDec = closestStringDecTMP;
 				}
@@ -282,7 +282,8 @@ unsigned long long int findClosestString(char ***strings, int stringcount, int s
 	if (rank) exit(0);
 
 	printf("closest String in Decimal is %i\n", closestStringDec);
-	printf("closest Distance in Decimal is %i\n", closestDistance);	
+	printf("closest Distance in Decimal is %i\n", closestDistance);
+	printf("With %i cores\n", process_count);
 	return closestStringDec;
 }
 
@@ -321,7 +322,7 @@ int main(int argc, char** argv) {
 
 	//Zeiger für Datei
 	FILE *fp;	
-	fp = fopen("strings_1.txt", "r");	// Dateizugriff, Datei als read zugegriffen
+	fp = fopen("strings.txt", "r");	// Dateizugriff, Datei als read zugegriffen
 	if (fp == NULL) {	// falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
@@ -337,12 +338,12 @@ int main(int argc, char** argv) {
 			tend = clock();
 			time = (tend- tstart) / CLOCKS_PER_SEC;
 			printf("Time: %f \n", time);
-			printf("%i \n", stringcount);
-			printf("%i \n", stringLength);
+			printf("stringcount: %i \n", stringcount);
+			printf("stringlength: %i \n", stringLength);
 			printf("ClosestStringDec: %i\n", result);
 			resultHex = malloc(stringLength * sizeof(char));
 			convertToHex(resultHex, result, stringLength);
-			printf("ClosestStringHex: %s",resultHex);
+			printf("ClosestStringHex: %s",resultHex);	
 		}
 		
 	}
