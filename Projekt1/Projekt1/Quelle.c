@@ -16,7 +16,6 @@
 #include <string.h>
 #include <Windows.h>
 #include <time.h>
-
 //Funktion zum erstellen eines 2D-Matrix-Arrays
 char ** createMatrix(int rows, int columns) {
 	//printf("Create Matrix with %d rows and %d columns\n", rows, columns);
@@ -71,10 +70,10 @@ char hammingDistance(char *str1, char *str2, int stringLength)
 	return count;
 }
 
-char * convertToHex(char* ret, unsigned long long decimal, int stringlength)
+char * convertToHex(char* ret, unsigned long long int decimal, int stringlength)
 {
 	int remainder;
-	unsigned long long quotient;
+	unsigned long long int quotient;
 	int j = 0;
 	char hexadecimal[16];
 	quotient = decimal;
@@ -101,17 +100,17 @@ char * convertToHex(char* ret, unsigned long long decimal, int stringlength)
 }
 
 //Funktion um korrekten String zu finden (Entwurf)
-int findClosestString(char ***strings, int stringcount, int stringLength)
+unsigned long long int findClosestString(char ***strings, int stringcount, int stringLength)
 {
-	int closestStringDec;
+	unsigned long long int closestStringDec=-1;
 	char* currentStringHex = malloc(stringLength * sizeof(currentStringHex));
 	int closestDistance = -1;
 	int totalDistance = 0;
 	int process_count, rank, root_process;
-	long long int taskCounter=0;
+	unsigned long long int taskCounter=0;
 	MPI_Status status;
 	MPI_File logfile;
-	long long int totalListSize = power(16, stringLength) - 1;
+	unsigned long long int totalListSize = power(16, stringLength) - 1;
 	int recProcess = 0;
 	root_process = 0;
 
@@ -137,8 +136,9 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 				MPI_LONG, i, 0, MPI_COMM_WORLD);
 			taskCounter++;
 		}
+
 		int ret = 0;
-		int closestStringDecTMP = 0;
+		unsigned long long int closestStringDecTMP = 0;
 		int closestDistanceTMP = 0;
 		for (taskCounter; taskCounter < totalListSize-5; taskCounter++) {
 			MPI_Recv(&ret, 1,
@@ -229,7 +229,6 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 			MPI_Recv(&closestDistance, 1,
 				MPI_LONG, 0, MPI_ANY_TAG,
 				MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-
 			totalDistance = 0;
 			convertToHex(currentStringHex, currentStringDec, stringLength);
 
@@ -238,17 +237,15 @@ int findClosestString(char ***strings, int stringcount, int stringLength)
 				totalDistance += hammingDistance((*strings)[i], currentStringHex, stringLength);
 				if (totalDistance >= closestDistance && closestDistance != -1) break;
 			}
-
 			//sprintf(mylogbuffer, "#%i StringDec %i hat ne distance von %i ~~~", rank,currentStringDec,totalDistance);
-
-			for (int i = 0; i < stringLength; i++) {
+			//for (int i = 0; i < stringLength; i++) {
 				//sprintf(line,"%c", currentStringHex[i]);
 				//strcat(mylogbuffer, line);
-			}
+			//}
 			//sprintf(line,"\n");
 			//strcat(mylogbuffer, line);
 			//MPI_File_write_shared(logfile, mylogbuffer, strlen(mylogbuffer), MPI_CHAR, MPI_STATUS_IGNORE);
-
+			
 			if (totalDistance < closestDistance || closestDistance == -1)
 			{
 
@@ -297,7 +294,7 @@ int main(int argc, char** argv) {
 	int stringcount;
 	int stringLength;
 	int linesToRead;
-	int result;
+	unsigned long long int result;
 	int verbosity;
 	double tstart,tend; // time measurement variables
 	double time;
@@ -334,12 +331,10 @@ int main(int argc, char** argv) {
 		
 		if (&strings == NULL) printf("Keine Strings vorhanden!");
 		else {
-			//printf("\nStart find closest string\n");	
+			MPI_Barrier(MPI_COMM_WORLD);
 			tstart = clock();
 			result = findClosestString(&strings, stringcount, stringLength);
 			tend = clock();
-			//printf("tstart:%f\n", tstart);
-			//printf("tend:%f\n", tend);
 			time = (tend- tstart) / CLOCKS_PER_SEC;
 			printf("Time: %f \n", time);
 			printf("\nEnd find closest string\n");
