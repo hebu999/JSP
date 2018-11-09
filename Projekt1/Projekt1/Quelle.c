@@ -321,7 +321,7 @@ int main(int argc, char** argv) {
 
 	//Zeiger für Datei
 	FILE *fp;	
-	fp = fopen("strings.txt", "r");	// Dateizugriff, Datei als read zugegriffen
+	fp = fopen("strings_1.txt", "r");	// Dateizugriff, Datei als read zugegriffen
 	if (fp == NULL) {	// falls die Datei nicht geoeffnet werden kann
 		printf("Datei konnte nicht geoeffnet werden!!\n");
 	}
