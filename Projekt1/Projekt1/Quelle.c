@@ -16,6 +16,7 @@
 #include <string.h>
 #include <Windows.h>
 #include <time.h>
+
 //Funktion zum erstellen eines 2D-Matrix-Arrays
 char ** createMatrix(int rows, int columns) {
 	//printf("Create Matrix with %d rows and %d columns\n", rows, columns);
@@ -140,7 +141,7 @@ unsigned long long int findClosestString(char ***strings, int stringcount, int s
 		int ret = 0;
 		unsigned long long int closestStringDecTMP = 0;
 		unsigned long long int closestDistanceTMP = 0;
-		for (taskCounter; taskCounter < totalListSize-5; taskCounter++) {
+		for (taskCounter; taskCounter < totalListSize; taskCounter++) {
 			MPI_Recv(&ret, 1,
 				MPI_LONG, MPI_ANY_SOURCE, MPI_ANY_TAG,
 				MPI_COMM_WORLD, &status);
@@ -348,7 +349,7 @@ int main(int argc, char** argv) {
 		
 	}
 	// funktionsblock um die Strings darzustellen
-	if (verbosity == 1 && verbosity == 3) {
+	if (verbosity == 1 || verbosity == 3) {
 
 		printf("Erfolgreiches Programm (^_^)");
 
