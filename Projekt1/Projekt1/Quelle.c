@@ -125,6 +125,7 @@ long long int findClosestString(char ***strings, int stringcount, int stringLeng
 	root_process = 0; 
 	
 	if (taskRangeInput) taskRange = taskRangeInput;
+	//initialisiere MPI
 	MPI_Comm_size(MPI_COMM_WORLD, &process_count);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -154,6 +155,7 @@ long long int findClosestString(char ***strings, int stringcount, int stringLeng
 					MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG,
 					MPI_COMM_WORLD, &request);
 
+				//Ueberprueft, ob das Senden erfolgreich abgeschlossen wird
 				MPI_Test(&request, &flag, &status);
 				while (flag == 0) {
 					totalDistance = 0;
