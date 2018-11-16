@@ -4,6 +4,22 @@
 *
 * 30.09.18
 *
+* Funktionsweise:
+* CST.exe Stringanzahl Verbosity [Stringlänge]
+*	Stringanzahl:	Anzahl der Strings die aus der Datei "Strings.txt" berücksichtigt werden soll
+*	Verbosity:		0: Keine Ausgaben.
+*					1: Nur die Lösung wird auf stdout (der Kommandozeile) ausgegeben werden.
+*					2: Nur die gemessenen Laufzeiten des Programms wird auf stdout ausgegeben werden.
+*					3: Die Ausgaben von Verbosity 1 und 2 werden beide ausgegeben werden.
+*					4: Zu der Ausgabe von Verbosity wird zusätzlich 
+*						die Anzahl an Strings mit der Länge der Strings 
+*						und der Anzahl der gestarteten Prozesse ausgegeben
+*
+*	Stringlänge:	Legt manuell die Länge der Strings Fest.
+*					Ohne Angabe dieses Parameters wird die 	Länge über die Datei ermittelt.
+*					(	Vorsicht - Dieser Parameter ist evtl. unsicher,			)
+*					(	da die selber eingegebene Stringlänge möglicherweise	)
+*					(	die Stringlänge der Datei überschreitet					)
 */
 
 #define _CRT_SECURE_NO_DEPRECATE
@@ -62,7 +78,7 @@ readStrings(FILE* fp, char ***array, int *stringcount, int *stringlength, int li
 }
 
 //Funktion zum berechnen der Hamming-Distanz
-char hammingDistance(char *str1, char *str2, int stringLength)
+int hammingDistance(char *str1, char *str2, int stringLength)
 {
 	int i = 0, count = 0;
 	while (i < stringLength)
@@ -99,7 +115,6 @@ char * convertToHex(char* ret, long long decimal, int stringlength)
 		else {
 			ret[i] = hexadecimal[(stringlength - 1) - i];
 		}
-
 	}
 	hexadecimal[stringlength] = 0;
 
@@ -109,7 +124,7 @@ char * convertToHex(char* ret, long long decimal, int stringlength)
 //Funktion um korrekten String zu finden (Entwurf)
 long long findClosestString(char ***strings, int stringcount, int stringLength)
 {
-	char* currentStringHex = malloc(stringLength + 1 * sizeof(currentStringHex));
+	char* currentStringHex = malloc((stringLength + 1 )* sizeof(currentStringHex));
 	int process_count, rank, root_process;
 	int flag = 0;
 	int zero = 0;
@@ -129,13 +144,14 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 
 	root_process = 0;
 
+	//Bearbeitungsschrittweite soll hier ermittelt werden
 	if (process_count > 1) taskRange = 500 / stringLength*process_count;
 
 	if (rank == root_process)
 	{
 		if (process_count > 1) {
-			for (int i = 1; i < process_count; i++) //verteilt allen Unterprozessen erstmalig eine Aufgabe
-			{
+			//Verteilt allen Unterprozessen erstmalig eine Aufgabe
+			for (int i = 1; i < process_count; i++) {
 				MPI_Send(&taskCounter, 1,
 					MPI_LONG_LONG, i, 0, MPI_COMM_WORLD);
 				MPI_Send(&taskRange, 1,
@@ -149,7 +165,7 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 			long long closestStringDecTMP = 0;
 			long long closestDistanceTMP = 0;
 			if (taskCounter + taskRange + 1 > totalListSize / process_count) {
-				taskRange = ((totalListSize - taskCounter) / process_count) / 100;
+				taskRange = (int)((totalListSize - taskCounter) / process_count) / 100;
 				if (taskRange == 0) taskRange = 1;
 			}
 
@@ -202,7 +218,6 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 							closestStringDec = closestStringDecTMP;
 						}
 					}
-
 					flag = 0;
 					MPI_Send(&taskCounter, 1,
 						MPI_LONG_LONG, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
@@ -220,15 +235,11 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 				}
 			}
 
-
-
-
 			for (int i = 1; i < process_count; i++) {
 				if (flag) {
 					flag = 0;
 				}
-				else
-				{
+				else {
 					MPI_Recv(&ret, 1,
 						MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG,
 						MPI_COMM_WORLD, &status);
@@ -250,11 +261,9 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 				//schicke Abbruchbedingung an die Unterthreads
 				MPI_Send(&abortVar, 1,
 					MPI_LONG_LONG, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
-
 			}
 		}
-		else 
-		{
+		else {
 			while (taskCounter < totalListSize) {
 				totalDistance = 0;
 				convertToHex(currentStringHex, taskCounter, stringLength);
@@ -270,8 +279,7 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 			}
 		}
 	}
-	else
-	{
+	else {
 		long long betterStringDec = -1;
 		long long currentStringDec = -1;
 		int submitNewDistance = 0;
@@ -282,6 +290,7 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 				MPI_LONG_LONG, 0, MPI_ANY_TAG,
 				MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
 
+			//Wenn die Abbruchvariable erhalten wird, wird die Endlosschleife verlassen und der Prozess gelangt zur Terminierung
 			if (currentStringDec == -1) break;
 
 			MPI_Recv(&taskRange, 1,
@@ -292,13 +301,17 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 				MPI_LONG_LONG, 0, MPI_ANY_TAG,
 				MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
 
+			//läuft die Anzahl an Aufgaben (taskRange) durch und prüft auf jeweilige HammingDistance
 			for (int taskNumber = 0; taskNumber < taskRange; taskNumber++) {
 				totalDistance = 0;
+				//String wird in Decimal übergeben, wird zur verwendung in Hex-String umgewandelt
 				convertToHex(currentStringHex, currentStringDec + taskNumber, stringLength);
+				//Ermittelt die gesamt-HammingDistance eines HexStrings zur Liste 
 				for (int i = 0; i < stringcount; i++) {
 					totalDistance += hammingDistance((*strings)[i], currentStringHex, stringLength);
 					if (totalDistance >= closestDistance && closestDistance != -1) break;
 				}
+				//falls eine bessere Distanz gefunden wurde, werden die Werte zwischengespeichert und die Flag zum übermitteln gesetzt
 				if (totalDistance < closestDistance || closestDistance == -1) {
 					closestDistance = totalDistance;
 					betterStringDec = currentStringDec + taskNumber;
@@ -306,9 +319,8 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 
 				}
 			}
-			if (submitNewDistance)
-			{
-
+			//Nachdem die Anzahl an Strings verglichen wurden, wird falls Flag gesetzt die Daten übermittelt
+			if (submitNewDistance) {
 				//schick eine 1 zum Hauptprozess um zu signalisieren dass ein String mit einer geringeren Distanz gefunden wurde
 				MPI_Send(&one, 1,
 					MPI_INT, 0, 1, MPI_COMM_WORLD);
@@ -319,26 +331,24 @@ long long findClosestString(char ***strings, int stringcount, int stringLength)
 				MPI_Send(&betterStringDec, 1,
 					MPI_LONG_LONG, 0, 3, MPI_COMM_WORLD);
 			}
-			else
-			{
+			else {
 				//schicke eine Null wenn kein String mit geringerer Distanz gefunden werden konnte
 				MPI_Send(&zero, 1,
 					MPI_LONG, 0, 0, MPI_COMM_WORLD);
 			}
 		}
 	}
-
+	//Alle Prozesse werden hier gesammelt und nur der Main-Thread gelangt zurück zur main()
 	MPI_Finalize();
 	if (rank) exit(0); 	//terminiere alle Unterprozesse
 
 	return closestStringDec;
 }
 
-
 int main(int argc, char** argv) {
 
 	char **strings = NULL;
-	char* resultHex;
+	char* resultHex = NULL;
 	int stringcount;
 	int stringLength;
 	int linesToRead;
@@ -395,13 +405,32 @@ int main(int argc, char** argv) {
 
 	// funktionsblock um die Strings darzustellen
 	if (verbosity == 1 || verbosity == 3 || verbosity == 4) {
+		int distance = 0;;
+		char* closestStringHex = malloc((stringLength + 1) * sizeof(closestStringHex));
+			convertToHex(closestStringHex, result, stringLength);
+
+		for (int i = 0; i < stringcount; i++) {
+			distance += hammingDistance(&((*strings)[i]), closestStringHex, stringLength);
+		}
+
 		printf("==================================================\n");
-		printf("Stringcount: %i \n", stringcount);
-		printf("Stringlength: %i \n", stringLength);
-		printf("New String in Decimal is %i\n", result);
-		resultHex = malloc(stringLength + 1 * sizeof(char));
-		convertToHex(resultHex, result, stringLength);
-		printf("New String in Hexadecimal is %s\n", resultHex);
+		printf("Closest string:\n");
+		printf("Distance %i\n", distance);
+
+		printf("New String "); 
+		for (int i = 0; i < stringLength-1; i++) {
+			printf("%c", closestStringHex[i]);
+		}
+		printf("\n");
+
+		printf("String       Distance\n");
+		for (int i = 0; i < stringcount; i++) {
+			for (int j = 0; j < 12; j++) {
+				if(j<stringLength) printf("%c", strings[i][j]);
+				else printf(" ");
+			}
+			printf(" %i\n", hammingDistance(strings[i], closestStringHex, stringLength));
+		}
 		printf("==================================================\n");
 	}
 
@@ -412,6 +441,8 @@ int main(int argc, char** argv) {
 
 	//Funktionsblock um testVariablen darzustellen verbosity<=>4
 	if (verbosity == 4) {
+		printf("Stringcount: %i \n", stringcount);
+		printf("Stringlength: %i \n", stringLength);
 		printf("process_count: %i\n", process_count);
 	}
 
