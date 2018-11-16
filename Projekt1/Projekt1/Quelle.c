@@ -1,4 +1,4 @@
-/*
+/*a
 * Heiner Büscher, Steffen Tietzel
 * Programm zur parallelisierung des Closest-String Problems
 *
@@ -28,7 +28,7 @@ char ** createMatrix(int rows, int columns) {
 	}
 	return ret;
 }
-
+//asdf
 long long power(int base, int exp) {
 	long long  result = 1;
 	for (int i = 0; i < exp; i++)
@@ -130,6 +130,7 @@ long long findClosestString(char ***strings, int stringcount, int stringLength, 
 
 	if (rank == root_process)
 	{
+		printf("stepsize:%i\n",taskRange);
 		if (process_count > 1) {
 			for (int i = 1; i < process_count; i++) //verteilt allen unterprozessen erstmalig eine Aufgabe
 			{
