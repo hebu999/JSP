@@ -22,7 +22,7 @@
     <ClCompile Include="Quelle.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F93BEFC3-AE73-479E-AE70-CBBD8FF5CE22}</ProjectGuid>
+    <ProjectGuid>{D79967C2-4057-4BE4-8D46-AB2BE1BA87CB}</ProjectGuid>
     <RootNamespace>Projekt1</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
     <ProjectName>CST</ProjectName>
@@ -74,8 +74,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -1,8 +1,8 @@
-/*a
+/*PVS SS 2018
 * Heiner Büscher, Steffen Tietzel
 * Programm zur parallelisierung des Closest-String Problems
 *
-* 30.09.18
+* 30.09.18 - 16.11.2018
 *
 * Funktionsweise:
 * CST.exe Stringanzahl Verbosity [Stringlänge]
